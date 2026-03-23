@@ -35,8 +35,13 @@ app.use(async (req, res, next) => {
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAIL || '').toLowerCase().split(',').map(e => e.trim());
 
+// Fix: Force Node.js to resolve IPv4 addresses to prevent Netlify IPv6 ENETUNREACH errors
+require('dns').setDefaultResultOrder('ipv4first');
+
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,

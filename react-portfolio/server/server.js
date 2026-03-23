@@ -19,9 +19,14 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✅ MongoDB Connected'))
     .catch(err => console.error('❌ MongoDB Error:', err));
 
+// Force Node.js to resolve IPv4 addresses to prevent Netlify IPv6 ENETUNREACH errors
+require('dns').setDefaultResultOrder('ipv4first');
+
 // Email Transporter
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,

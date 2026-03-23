@@ -8,7 +8,7 @@ const MONGO_URI = process.env.MONGODB_URI;
 async function resetPassword() {
     try {
         await mongoose.connect(MONGO_URI);
-        const user = await User.findOne({ email: 'shahriyartaufik07@gmail.com' });
+        const user = await User.findOne({ email: process.env.EMAIL_USER || 'admin@example.com' });
 
         if (!user) {
             console.log('Account not found in database.');
