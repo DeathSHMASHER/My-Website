@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Users, MessageCircle, Clock, Mail, Phone, User, ChevronDown, ChevronUp, ArrowLeft, Shield } from 'lucide-react';
 
-const API_URL = '/api';
+import { API_URL } from '../config';
 
 const AdminDashboard = ({ isOpen, onClose, adminEmail }) => {
     const [users, setUsers] = useState([]);

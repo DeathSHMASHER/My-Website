@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_URL } from '../config';
 
 const Contact = () => {
     const [btnText, setBtnText] = useState('Send Message');
@@ -15,7 +16,7 @@ const Contact = () => {
         setBtnStyle({});
 
         try {
-            const response = await fetch('/api/contact', {
+            const response = await fetch(`${API_URL}/contact`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, message })

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Phone, Eye, EyeOff, Sparkles, ArrowLeft } from 'lucide-react';
 
-const API_URL = '/api';
+import { API_URL } from '../config';
 
 const AuthModal = ({ isOpen, onClose, onLogin }) => {
     const [view, setView] = useState('login');

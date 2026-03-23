@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, User, Bot, Sparkles, Shield } from 'lucide-react';
+import { API_URL } from '../config';
 
 
 
@@ -49,7 +50,7 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
     const saveChatToServer = async () => {
         if (!loggedInUser || messages.length <= 1) return;
         try {
-            await fetch('/api/chat/save', {
+            await fetch(`${API_URL}/chat/save`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -111,7 +112,7 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
             }));
 
             // Call the local backend API instead of Google APIs directly
-            const response = await fetch('/api/chat/generate', {
+            const response = await fetch(`${API_URL}/chat/generate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
