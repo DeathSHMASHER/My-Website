@@ -1,7 +1,7 @@
 const Footer = () => {
     const currentYear = new Date().getFullYear();
 
-    return (
+    return ( 
         <footer>
             <div className="container">
                 <div className="footer-grid">
