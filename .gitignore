@@ -4,6 +4,6 @@ dist/
 build/
 .vscode/
 .idea/
-*.log
+*.log 
 venv/
 __pycache__/
