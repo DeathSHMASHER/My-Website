@@ -343,17 +343,17 @@ app.post('/api/chat/generate', async (req, res) => {
             safetySettings
         });
 
-        let usedModel = 'gemma-4-31b-it';
-        let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent?key=${API_KEY}`, {
+        let usedModel = 'gemini-2.0-flash';
+        let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: requestBody
         });
 
-        // Silent fallback to gemini-3.5-flash-lite if 429 / 503
-        if (response.status === 429 || response.status === 503) {
-            usedModel = 'gemini-3.5-flash-lite';
-            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${API_KEY}`, {
+        // Silent fallback to gemini-1.5-flash if rate limited or unavailable
+        if (!response.ok && (response.status === 429 || response.status === 503 || response.status === 404)) {
+            usedModel = 'gemini-1.5-flash';
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: requestBody
@@ -361,8 +361,8 @@ app.post('/api/chat/generate', async (req, res) => {
         }
 
         // Secondary fallback to gemini-2.0-flash-lite
-        if (response.status === 429 || response.status === 503) {
-            usedModel = 'gemini-3.1-flash-lite';
+        if (!response.ok && (response.status === 429 || response.status === 503 || response.status === 404)) {
+            usedModel = 'gemini-2.0-flash-lite';
             response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
