@@ -257,42 +257,110 @@ app.post('/api/chat/save', async (req, res) => {
     }
 });
 
+// Dynamic Resume Fetching & Caching
+const RESUME_URL = process.env.RESUME_URL || 'https://drive.google.com/file/d/1HhX534tO8exquYUH4rBA5l80MiG7tH1F/view';
+
+function getGoogleDriveId(url) {
+    if (!url) return null;
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    return match ? match[1] : null;
+}
+
+let cachedResumeData = null;
+let lastResumeFetchTime = 0;
+const RESUME_CACHE_TTL = 5 * 60 * 1000; // 5 mins cache TTL
+
+async function getResumeInlineData() {
+    const now = Date.now();
+    if (cachedResumeData && (now - lastResumeFetchTime < RESUME_CACHE_TTL)) {
+        return cachedResumeData;
+    }
+
+    const fileId = getGoogleDriveId(RESUME_URL);
+    if (!fileId) return null;
+
+    const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    try {
+        const res = await fetch(downloadUrl);
+        if (!res.ok) return null;
+        const buf = Buffer.from(await res.arrayBuffer());
+        cachedResumeData = {
+            inlineData: {
+                mimeType: 'application/pdf',
+                data: buf.toString('base64')
+            }
+        };
+        lastResumeFetchTime = now;
+        console.log('✅ [Resume Service] Dynamically fetched latest resume PDF from link!');
+        return cachedResumeData;
+    } catch (err) {
+        console.error('❌ [Resume Service] Error fetching resume:', err.message);
+        return null;
+    }
+}
+
 app.post('/api/chat/generate', async (req, res) => {
     try {
-        const { historyForAPI, SYSTEM_PROMPT } = req.body;
+        let { historyForAPI, SYSTEM_PROMPT } = req.body;
         const API_KEY = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : null;
 
         if (!API_KEY) {
             return res.status(500).json({ error: 'Server configuration error: Gemini API key missing' });
         }
 
-        // gemma-3-27b-it does not support the "systemInstruction" parameter directly via the Gemini API wrapper yet.
-        // We must append it as the first message in the contents array.
-        const modifiedHistory = [
-            { role: 'user', parts: [{ text: `SYSTEM INSTRUCTION (OBEY THESE RULES): ${SYSTEM_PROMPT}` }] },
-            { role: 'model', parts: [{ text: 'Understood.' }] },
-            ...historyForAPI
+        // Dynamically attach the latest live resume PDF as inline data if available
+        const resumeData = await getResumeInlineData();
+        if (resumeData && historyForAPI && historyForAPI.length > 0) {
+            const firstUserMsgIndex = historyForAPI.findIndex(m => m.role === 'user');
+            if (firstUserMsgIndex !== -1) {
+                const existingParts = historyForAPI[firstUserMsgIndex].parts || [];
+                const hasPdfAlready = existingParts.some(p => p.inlineData && p.inlineData.mimeType === 'application/pdf');
+                if (!hasPdfAlready) {
+                    historyForAPI[firstUserMsgIndex].parts = [resumeData, ...existingParts];
+                }
+            }
+        }
+
+        const safetySettings = [
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
         ];
 
         const requestBody = JSON.stringify({
-            contents: modifiedHistory,
+            contents: historyForAPI,
+            systemInstruction: {
+                parts: [{ text: SYSTEM_PROMPT }]
+            },
             generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 500,
-            }
+                temperature: 0.85,
+                maxOutputTokens: 600,
+            },
+            safetySettings
         });
 
-        let usedModel = 'gemma-3-27b-it';
-        let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${API_KEY}`, {
+        let usedModel = 'gemma-4-31b-it';
+        let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent?key=${API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: requestBody
         });
 
-        // Silent fallback to gemini-3.1-flash-lite if out of tokens (429)
-        if (response.status === 429) {
-            usedModel = 'gemini-3.1-flash-lite';
+        // Silent fallback to gemini-3.5-flash-lite if 429 / 503
+        if (response.status === 429 || response.status === 503) {
+            usedModel = 'gemini-3.5-flash-lite';
             response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: requestBody
+            });
+        }
+
+        // Secondary fallback to gemini-2.0-flash-lite
+        if (response.status === 429 || response.status === 503) {
+            usedModel = 'gemini-2.0-flash-lite';
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: requestBody

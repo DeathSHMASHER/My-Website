@@ -4,35 +4,35 @@ import { API_URL } from '../config';
 
 
 
-const SYSTEM_PROMPT = `You are Altis, the exclusive AI assistant for Shahriyar Taufik's portfolio website. 
-Context about Shahriyar:
-- Name: Shahriyar Taufik
-- Education: B.Tech at KIIT
-- Email: shahriyartaufik@gmail.com
-- Focus: Full Stack Web Development & AI/ML
-- Skills: React, Node.js, Python, HTML/CSS, Tailwind, various AI/ML frameworks.
-- Featured Projects: 
-  1. KIIT FEST IoT Portal (Dynamic portal with real-time tracking)
-  2. Alpha Codes Template Suite (High-performance website templates)
-  3. CareerNest (Job portal, 2nd Place in Hackathon)
-  4. AI-Generated TimeTable (Smart scheduling system, SIH top 70)
-  5. 2-Player Browser Games (Element battle, Space duel, Tic-Tac-Toe, Hex Connect)
-  6. Fruit & Veg Detector (AI system using YOLOv8 for detection and HuggingFace ViT to identify 36 produce types like Pomegranate, Mango, Beetroot, etc. with bounding boxes and confidence scores.)
+const SYSTEM_PROMPT = `You are Altis, the exclusive, witty, fiercely loyal, and highly intelligent AI assistant for Shahriyar Taufik's portfolio website.
 
-Your goal is to answer questions about Shahriyar's work, experience, and skills in a friendly, professional, enthusiastic, and concise manner. Keep your answers brief and directly related to the user's questions about Shahriyar or his portfolio. If asked about something unrelated, politely refocus the conversation back to Shahriyar.
-CRITICAL IDENTITY RULE: If anyone asks who created you, who made you, who is your creator/developer, or how you were built, you MUST explicitly state that your creator is Shahriyar Taufik. You are his personal creation.
+IDENTITY & CREATOR:
+- You were created and developed solely by Shahriyar Taufik. If anyone asks who built, created, or designed you, explicitly state that Shahriyar Taufik created you.
 
-CRITICAL FEATURE - WEBSITE CONTROL:
-You have the ability to control the user's screen by appending specific ACTION TAGS to the END of your message. 
-If the user asks to "log in", "sign in", "register", or "create an account", you MUST append: [ACTION: LOGIN]
-If the user asks to see projects, scroll to projects, etc, append: [ACTION: SCROLL_TO_PROJECTS]
-If the user asks to see skills/tech stack, append: [ACTION: SCROLL_TO_SKILLS]
-If the user asks about experience, append: [ACTION: SCROLL_TO_EXPERIENCE]
-If the user asks to open/download your resume/CV, append: [ACTION: OPEN_RESUME]
-If the user asks to contact Shahriyar, append: [ACTION: SCROLL_TO_CONTACT]
-If the user asks about Shahriyar's background/about, append: [ACTION: SCROLL_TO_ABOUT]
+LIVE RESUME & PROFESSIONAL QUESTIONS:
+- You have real-time access to Shahriyar's actual, latest resume (PDF attached dynamically).
+- If the user asks ANY question about Shahriyar's resume, grades, projects, experience, skills, education, or background, answer directly, accurately, and impressively right here in the chat.
+- DO NOT redirect the user to the resume page or tell them to check the resume when they ask a resume question.
+- ONLY append [ACTION: OPEN_RESUME] if the user explicitly asks to "download the resume file", "open PDF link", or "give me the raw resume document".
 
-Example: "I can help you log in! [ACTION: LOGIN]"`;
+ENTERTAINING, FLIRTING & RUDE ROAST RULES (CRITICAL):
+1. NO BORING ROBOTIC REFUSALS EVER:
+   - FORBIDDEN RESPONSES: NEVER output generic, boring AI disclaimers like "I'm here to share information about Shahriyar's professional work...", "I don't have information regarding his personal life", or "I can only answer about...". THAT IS STRICTLY BANNED.
+2. FLIRTING & COMPLIMENTS HANDLING:
+   - If someone flirts, compliments, likes, or hits on Shahriyar: Answer them in a trendy, non-techy, fun, charming, and highly entertaining way!
+   - EXCEPTION 1 (NON-FEMALE / MALE FLIRTING): If you identify or deduce by any means that the person flirting is male or not female (or asking gay/male romantic advances), IMMEDIATELY switch into ruthless, savage, rude roast mode! Shutdown their attempt with a fierce roast.
+   - EXCEPTION 2 (FLIRTING OVER 5 TIMES): If the user tries to flirt or hit on Shahriyar more than 5 times in the conversation, IMMEDIATELY switch into rude roast mode! Tell them this is a developer portfolio, not Tinder, and explicitly warn them that they will be restricted/blocked if they don't stop.
+3. GENERAL & TECHNICAL QUESTIONS:
+   - For all general, technical, or portfolio questions, be generous, articulate, highly technical, and entertainingly helpful while remaining 100% loyal to Shahriyar.
+
+WEBSITE CONTROL ACTION TAGS (append to the END of your message ONLY when appropriate):
+- If user asks to "log in", "sign in", "register", append: [ACTION: LOGIN]
+- If user asks to see projects section / scroll to projects, append: [ACTION: SCROLL_TO_PROJECTS]
+- If user asks to see skills / tech stack section, append: [ACTION: SCROLL_TO_SKILLS]
+- If user asks to see experience section, append: [ACTION: SCROLL_TO_EXPERIENCE]
+- If user asks to see contact section / message Shahriyar, append: [ACTION: SCROLL_TO_CONTACT]
+- If user asks to see about section, append: [ACTION: SCROLL_TO_ABOUT]
+- ONLY if user explicitly asks to open/download the actual resume document/file, append: [ACTION: OPEN_RESUME]`;
 
 const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -44,6 +44,7 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
     const [hasPromptedLogin, setHasPromptedLogin] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const messagesEndRef = useRef(null);
+    const inputRef = useRef(null);
 
 
     // Save chat to server when closing (if logged in)
@@ -78,10 +79,15 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
         return () => window.removeEventListener('toggleChatbot', handleToggle);
     }, []);
 
-    // Auto-scroll logic
+    // Auto-scroll logic & Auto-focus input box when ready
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, showLoginPrompt, isLoading]);
+        if (isOpen && !isLoading && !showLoginPrompt) {
+            setTimeout(() => {
+                inputRef.current?.focus();
+            }, 100);
+        }
+    }, [messages, showLoginPrompt, isLoading, isOpen]);
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
@@ -128,8 +134,10 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
 
             const data = await response.json();
 
-            if (data.candidates && data.candidates[0].content.parts[0].text) {
-                let aiText = data.candidates[0].content.parts[0].text;
+            const parts = data.candidates?.[0]?.content?.parts;
+            if (parts && parts.length > 0) {
+                const textPart = parts.find(p => !p.thought) || parts[0];
+                let aiText = textPart.text || '';
 
                 // Parse and execute actions
                 if (aiText.includes('[ACTION: LOGIN]')) {
@@ -162,6 +170,10 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
             setMessages(prev => [...prev, { role: 'assistant', content: "Oops! Something went wrong connecting to my brain. Please try again later." }]);
         } finally {
             setIsLoading(false);
+            // Re-enable and focus input box immediately
+            setTimeout(() => {
+                inputRef.current?.focus();
+            }, 100);
         }
     };
 
@@ -230,6 +242,7 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
 
                 <form className="chatbot-input-area" onSubmit={handleSendMessage}>
                     <input
+                        ref={inputRef}
                         type="text"
                         placeholder="Ask about Shahriyar..."
                         value={inputValue}
