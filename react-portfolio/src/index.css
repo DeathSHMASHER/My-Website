@@ -3060,7 +3060,14 @@ footer {
         font-size: 0.88rem !important;
     }
 
-    /* Mobile Bottom-Sheet Full-Viewport Chat Window */
+    /* Mobile Dedicated Full-Screen Chat View - Completely Covers Website */
+    .chatbot-mobile-backdrop {
+        position: fixed !important;
+        inset: 0 !important;
+        background: #050510 !important;
+        z-index: 9999 !important;
+    }
+
     .chatbot-window {
         position: fixed !important;
         top: 0 !important;
@@ -3068,12 +3075,13 @@ footer {
         right: 0 !important;
         bottom: 0 !important;
         width: 100vw !important;
-        height: 100vh !important;
+        height: 100dvh !important;
         max-width: 100vw !important;
-        max-height: 100vh !important;
+        max-height: 100dvh !important;
         border-radius: 0 !important;
         border: none !important;
         z-index: 10000 !important;
+        background: #08081a !important;
         display: flex !important;
         flex-direction: column !important;
     }
@@ -3086,9 +3094,12 @@ footer {
     }
 
     .chatbot-input-area {
-        padding: 14px 16px !important;
-        background: rgba(10, 10, 30, 0.95) !important;
-        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        position: sticky !important;
+        bottom: 0 !important;
+        padding: 12px 16px env(safe-area-inset-bottom, 12px) 16px !important;
+        background: #0d0d26 !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+        z-index: 10001 !important;
     }
 }
 

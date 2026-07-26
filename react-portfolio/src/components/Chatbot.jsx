@@ -145,6 +145,51 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
         return () => window.removeEventListener('toggleChatbot', handleToggle);
     }, []);
 
+    const [viewportHeight, setViewportHeight] = useState(null);
+
+    // Lock body scroll on mobile when chat is open
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            if (isOpen && window.innerWidth <= 768) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+        return () => {
+            if (typeof window !== 'undefined') {
+                document.body.style.overflow = '';
+            }
+        };
+    }, [isOpen]);
+
+    // Track visualViewport on mobile so input field stays above keyboard
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleViewportResize = () => {
+            if (window.visualViewport && window.innerWidth <= 768) {
+                setViewportHeight(window.visualViewport.height);
+            } else {
+                setViewportHeight(null);
+            }
+        };
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleViewportResize);
+            window.visualViewport.addEventListener('scroll', handleViewportResize);
+        }
+
+        handleViewportResize();
+
+        return () => {
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', handleViewportResize);
+                window.visualViewport.removeEventListener('scroll', handleViewportResize);
+            }
+        };
+    }, [isOpen]);
+
     // Auto-scroll logic & Auto-focus input box when ready
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -265,6 +310,8 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
 
     return (
         <>
+            {isOpen && <div className="chatbot-mobile-backdrop" onClick={handleClose} />}
+
             {!isOpen && (
                 <button
                     className="chatbot-floating-btn altis-glow-pulse"
@@ -277,7 +324,10 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
             )}
 
             {isOpen && (
-                <div className="chatbot-window fade-in">
+                <div
+                    className="chatbot-window fade-in"
+                    style={viewportHeight && typeof window !== 'undefined' && window.innerWidth <= 768 ? { height: `${viewportHeight}px`, top: 0, bottom: 'auto' } : {}}
+                >
                     <div className="chatbot-header">
                         <div>
                             <h3>✨ Altis AI</h3>
