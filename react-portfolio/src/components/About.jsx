@@ -33,8 +33,8 @@ const About = () => {
                                 <div className="label">Education</div>
                                 <div className="value">B.Tech at KIIT</div>
                             </div>
-                            <div className="detail-item">
-                                <span className="label">Mail:</span>
+                            <div className="info-card">
+                                <div className="label">Email</div>
                                 <div className="value">shahriyartaufik@gmail.com</div>
                             </div>
                             <div className="info-card">

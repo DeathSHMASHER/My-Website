@@ -152,7 +152,7 @@ const Navbar = ({ loggedInUser, onLogout, onLoginClick }) => {
                             }}
                             onMouseEnter={() => setHoveredSection('use-ai')}
                         >
-                            Use AI ↗
+                            Chat with Altis ↗
                         </button>
                     </li>
                 </ul>

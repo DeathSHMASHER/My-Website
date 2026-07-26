@@ -385,8 +385,14 @@ app.post('/api/chat/generate', async (req, res) => {
             return res.status(response.status).json({ error: `Gemini API error: ${response.status}`, details: errorText });
         }
 
-        console.log(`[AI API] Successfully generated response using model: ${usedModel}`);
         const data = await response.json();
+        // Filter out internal thinking/reasoning parts
+        if (data.candidates?.[0]?.content?.parts) {
+            const nonThought = data.candidates[0].content.parts.filter(p => !p.thought);
+            if (nonThought.length > 0) {
+                data.candidates[0].content.parts = nonThought;
+            }
+        }
         data.modelUsed = usedModel;
         res.json(data);
 

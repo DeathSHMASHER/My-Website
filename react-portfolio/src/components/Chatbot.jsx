@@ -34,6 +34,72 @@ WEBSITE CONTROL ACTION TAGS (append to the END of your message ONLY when appropr
 - If user asks to see about section, append: [ACTION: SCROLL_TO_ABOUT]
 - ONLY if user explicitly asks to open/download the actual resume document/file, append: [ACTION: OPEN_RESUME]`;
 
+const renderFormattedMessage = (content) => {
+    if (!content) return null;
+
+    // Clean internal thinking tags or raw prompt metadata
+    let cleaned = content.replace(/<thought>[\s\S]*?<\/thought>/gi, '').trim();
+
+    // Filter out internal prompt debug strings if any
+    const rawLines = cleaned.split('\n');
+    const filteredLines = rawLines.filter(line => {
+        const t = line.trim();
+        return !t.startsWith('* User question:') &&
+            !t.startsWith('* Target:') &&
+            !t.startsWith('* Context:') &&
+            !t.startsWith('* Persona:') &&
+            !t.startsWith('* Identity:') &&
+            !t.startsWith('* Professional Questions:') &&
+            !t.startsWith('* Entertaining/Flirting/Rude');
+    });
+
+    cleaned = filteredLines.join('\n').trim() || content;
+    const lines = cleaned.split('\n');
+
+    return lines.map((line, lineIdx) => {
+        let trimmed = line.trim();
+        if (!trimmed) return <div key={lineIdx} style={{ height: '6px' }} />;
+
+        // Bullet points (* item or - item)
+        const isBullet = /^[*-]\s+/.test(trimmed);
+        if (isBullet) {
+            trimmed = trimmed.replace(/^[*-]\s+/, '');
+        }
+
+        // Parse **bold** and *italic* and `code`
+        const parts = [];
+        let lastIndex = 0;
+        const regex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
+        let match;
+
+        while ((match = regex.exec(trimmed)) !== null) {
+            if (match.index > lastIndex) {
+                parts.push(trimmed.substring(lastIndex, match.index));
+            }
+            const matchText = match[0];
+            if (matchText.startsWith('**') && matchText.endsWith('**')) {
+                parts.push(<strong key={match.index}>{matchText.slice(2, -2)}</strong>);
+            } else if (matchText.startsWith('*') && matchText.endsWith('*')) {
+                parts.push(<em key={match.index}>{matchText.slice(1, -1)}</em>);
+            } else if (matchText.startsWith('`') && matchText.endsWith('`')) {
+                parts.push(<code key={match.index} style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>{matchText.slice(1, -1)}</code>);
+            }
+            lastIndex = regex.lastIndex;
+        }
+
+        if (lastIndex < trimmed.length) {
+            parts.push(trimmed.substring(lastIndex));
+        }
+
+        return (
+            <div key={lineIdx} style={{ margin: '2px 0', lineHeight: '1.5' }}>
+                {isBullet && <span style={{ color: '#00D4FF', marginRight: '6px' }}>•</span>}
+                <span>{parts.length > 0 ? parts : trimmed}</span>
+            </div>
+        );
+    });
+};
+
 const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
@@ -179,83 +245,125 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
 
     const handleContinueWithoutLogin = () => {
         setShowLoginPrompt(false);
-        // Continue to answer the last user message
         fetchAIResponse(messages);
     };
 
-    if (!isOpen) return null;
+    const handleQuickChipClick = (promptText) => {
+        if (isLoading || showLoginPrompt) return;
+        const userMessage = { role: 'user', content: promptText };
+        const newMessages = [...messages, userMessage];
+        setMessages(newMessages);
+
+        if (!hasPromptedLogin && !loggedInUser) {
+            setHasPromptedLogin(true);
+            setShowLoginPrompt(true);
+            return;
+        }
+
+        fetchAIResponse(newMessages);
+    };
 
     return (
         <>
-            <div className="chatbot-window fade-in">
-                <div className="chatbot-header">
-                    <div>
-                        <h3>✨ Altis AI</h3>
-                        <p>Made by Shahriyar</p>
-                    </div>
-                    <div className="chatbot-header-actions">
-                        {loggedInUser?.isAdmin && (
-                            <button className="admin-btn" onClick={() => window.open('/admin.html', '_blank')} title="Admin Dashboard">
-                                <Shield size={18} />
+            {!isOpen && (
+                <button
+                    className="chatbot-floating-btn altis-glow-pulse"
+                    onClick={() => setIsOpen(true)}
+                    aria-label="Open Altis AI Assistant"
+                >
+                    <Sparkles size={22} className="ai-sparkle-icon" />
+                    <span className="chatbot-floating-label">Ask Altis AI</span>
+                </button>
+            )}
+
+            {isOpen && (
+                <div className="chatbot-window fade-in">
+                    <div className="chatbot-header">
+                        <div>
+                            <h3>✨ Altis AI</h3>
+                            <p>Shahriyar's AI Assistant</p>
+                        </div>
+                        <div className="chatbot-header-actions">
+                            {loggedInUser?.isAdmin && (
+                                <button className="admin-btn" onClick={() => window.open('/admin.html', '_blank')} title="Admin Dashboard">
+                                    <Shield size={18} />
+                                </button>
+                            )}
+                            <button className="chatbot-close" onClick={handleClose}>
+                                <X size={20} />
                             </button>
-                        )}
-                        <button className="chatbot-close" onClick={handleClose}>
-                            <X size={20} />
-                        </button>
+                        </div>
                     </div>
+
+                    <div className="chatbot-messages">
+                        {messages.map((msg, idx) => (
+                            <div key={idx} className={`chat-bubble-container ${msg.role}`}>
+                                <div className="chat-avatar">
+                                    {msg.role === 'assistant' ? <Bot size={16} /> : <User size={16} />}
+                                </div>
+                                <div className="chat-bubble">
+                                    {renderFormattedMessage(msg.content)}
+                                </div>
+                            </div>
+                        ))}
+
+                        {isLoading && (
+                            <div className="chat-bubble-container assistant">
+                                <div className="chat-avatar"><Bot size={16} /></div>
+                                <div className="chat-bubble typing-indicator">
+                                    <span></span><span></span><span></span>
+                                </div>
+                            </div>
+                        )}
+
+                        {showLoginPrompt && (
+                            <div className="login-recommendation">
+                                <Sparkles className="login-icon" size={24} />
+                                <h4>Want to save your chat?</h4>
+                                <p>Log in to keep your conversation history and get personalized answers.</p>
+                                <div className="login-actions">
+                                    <button className="btn-primary login-btn-mock" onClick={() => setShowAuthModal(true)}>Log In</button>
+                                    <button className="btn-outline" onClick={handleContinueWithoutLogin}>Just Chat</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Quick Suggestion Chips */}
+                        {messages.length <= 2 && !isLoading && !showLoginPrompt && (
+                            <div className="chat-suggestion-chips">
+                                <button onClick={() => handleQuickChipClick("✨ What are Shahriyar's key skills?")}>
+                                    ✨ Key Skills
+                                </button>
+                                <button onClick={() => handleQuickChipClick("🚀 Show me your top projects")}>
+                                    🚀 Top Projects
+                                </button>
+                                <button onClick={() => handleQuickChipClick("📄 How can I open your resume?")}>
+                                    📄 Open Resume
+                                </button>
+                                <button onClick={() => handleQuickChipClick("📱 How do I get in touch with Shahriyar?")}>
+                                    📱 Contact
+                                </button>
+                            </div>
+                        )}
+
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    <form className="chatbot-input-area" onSubmit={handleSendMessage}>
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            placeholder="Ask Altis AI about Shahriyar..."
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            disabled={showLoginPrompt || isLoading}
+                        />
+                        <button type="submit" disabled={!inputValue.trim() || showLoginPrompt || isLoading} className="send-btn">
+                            <Send size={18} />
+                        </button>
+                    </form>
                 </div>
-
-                <div className="chatbot-messages">
-                    {messages.map((msg, idx) => (
-                        <div key={idx} className={`chat-bubble-container ${msg.role}`}>
-                            <div className="chat-avatar">
-                                {msg.role === 'assistant' ? <Bot size={16} /> : <User size={16} />}
-                            </div>
-                            <div className="chat-bubble">
-                                {msg.content}
-                            </div>
-                        </div>
-                    ))}
-
-                    {isLoading && (
-                        <div className="chat-bubble-container assistant">
-                            <div className="chat-avatar"><Bot size={16} /></div>
-                            <div className="chat-bubble typing-indicator">
-                                <span></span><span></span><span></span>
-                            </div>
-                        </div>
-                    )}
-
-                    {showLoginPrompt && (
-                        <div className="login-recommendation">
-                            <Sparkles className="login-icon" size={24} />
-                            <h4>Want to save your chat?</h4>
-                            <p>Log in to keep your conversation history and get personalized answers.</p>
-                            <div className="login-actions">
-                                <button className="btn-primary login-btn-mock" onClick={() => setShowAuthModal(true)}>Log In</button>
-                                <button className="btn-outline" onClick={handleContinueWithoutLogin}>Just Chat</button>
-                            </div>
-                        </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
-
-                <form className="chatbot-input-area" onSubmit={handleSendMessage}>
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        placeholder="Ask about Shahriyar..."
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        disabled={showLoginPrompt || isLoading}
-                    />
-                    <button type="submit" disabled={!inputValue.trim() || showLoginPrompt || isLoading} className="send-btn">
-                        <Send size={18} />
-                    </button>
-                </form>
-            </div>
-
-
+            )}
         </>
     );
 };

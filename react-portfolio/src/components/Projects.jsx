@@ -59,7 +59,7 @@ const Projects = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="project-card liquid-glass liquid-glass-continuous reveal reveal-delay-3" style={{ '--shimmer-delay': '1s' }}>
+                    <div className="project-card liquid-glass liquid-glass-continuous reveal" style={{ '--shimmer-delay': '1s' }}>
                         <div className="project-img">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5M12 10.5v9M9 15h6" />
@@ -76,7 +76,7 @@ const Projects = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="project-card liquid-glass liquid-glass-continuous reveal" style={{ '--shimmer-delay': '1.5s' }}>
+                    <div className="project-card liquid-glass liquid-glass-continuous reveal reveal-delay-1" style={{ '--shimmer-delay': '1.5s' }}>
                         <div className="project-img">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
@@ -93,7 +93,7 @@ const Projects = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="project-card liquid-glass liquid-glass-continuous reveal reveal-delay-1" style={{ '--shimmer-delay': '2.5s' }}>
+                    <div className="project-card liquid-glass liquid-glass-continuous reveal reveal-delay-2" style={{ '--shimmer-delay': '2.5s' }}>
                         <div className="project-img">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
