@@ -57,6 +57,9 @@ const sendOTPEmail = async (to, otp, subject = '🔐 Your Verification OTP Code'
     });
 };
 
+// Health Check / Warm-up ping route
+app.get('/api/ping', (req, res) => res.json({ status: 'ok', time: new Date() }));
+
 // ==================== AUTH ROUTES ====================
 
 // Step 1: Send OTP (Registration — creates unverified user with name, username, email)

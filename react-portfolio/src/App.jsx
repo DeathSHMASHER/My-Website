@@ -14,8 +14,14 @@ import CursorGlow from './components/CursorGlow';
 import Global3DBackground from './components/Global3DBackground';
 import Chatbot from './components/Chatbot';
 import AuthModal from './components/AuthModal';
+import { API_URL } from './config';
 
 function App() {
+  // Warm up backend on page load (wakes up sleeping Render free instance immediately)
+  useEffect(() => {
+    fetch(`${API_URL}/ping`).catch(() => {});
+  }, []);
+
   const [loggedInUser, setLoggedInUserState] = useState(() => {
     try {
       const stored = localStorage.getItem('loggedInUser');
