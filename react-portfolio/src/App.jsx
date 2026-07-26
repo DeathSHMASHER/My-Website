@@ -12,11 +12,15 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import CursorGlow from './components/CursorGlow';
 import Global3DBackground from './components/Global3DBackground';
+import MobileBackground from './components/MobileBackground';
 import Chatbot from './components/Chatbot';
 import AuthModal from './components/AuthModal';
 import { API_URL } from './config';
+import useIsMobile from './hooks/useIsMobile';
 
 function App() {
+  const isMobile = useIsMobile(768);
+
   // Warm up backend on page load (wakes up sleeping Render free instance immediately)
   useEffect(() => {
     fetch(`${API_URL}/ping`).catch(() => {});
@@ -83,7 +87,7 @@ function App() {
 
   return (
     <>
-      <Global3DBackground />
+      {isMobile ? <MobileBackground /> : <Global3DBackground />}
       <CursorGlow />
 
       <Preloader />

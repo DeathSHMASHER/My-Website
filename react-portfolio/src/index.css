@@ -2817,3 +2817,102 @@ footer {
         display: none;
     }
 }
+
+/* ==========================================
+   MOBILE LIGHTWEIGHT INTERFACE & BACKGROUND
+   ========================================== */
+.mobile-background-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 10%, #0d0b26 0%, #050510 100%);
+}
+
+.mobile-bg-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.45;
+    will-change: transform;
+}
+
+.mobile-bg-orb-1 {
+    top: -10%;
+    left: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, #7B73FF 0%, transparent 70%);
+}
+
+.mobile-bg-orb-2 {
+    bottom: 20%;
+    right: -10%;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, #00D4FF 0%, transparent 70%);
+}
+
+.mobile-bg-orb-3 {
+    top: 45%;
+    left: 10%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, #FF6CAB 0%, transparent 70%);
+}
+
+.mobile-bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.6;
+}
+
+@media (max-width: 768px) {
+    /* Touch Optimizations */
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Disable heavy animations on touch */
+    .cursor-glow {
+        display: none !important;
+    }
+
+    /* Mobile Typography & Spacing */
+    section {
+        padding: 60px 16px !important;
+    }
+
+    .hero-title {
+        font-size: 2.2rem !important;
+        line-height: 1.25 !important;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem !important;
+    }
+
+    /* Mobile Floating Chatbot adjustments */
+    .chatbot-floating-btn {
+        bottom: 20px !important;
+        right: 20px !important;
+        width: 54px !important;
+        height: 54px !important;
+    }
+
+    .chatbot-window {
+        width: calc(100vw - 32px) !important;
+        height: calc(100vh - 100px) !important;
+        right: 16px !important;
+        bottom: 84px !important;
+        border-radius: 16px !important;
+    }
+}

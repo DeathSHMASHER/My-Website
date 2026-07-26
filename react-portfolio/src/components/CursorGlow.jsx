@@ -1,9 +1,12 @@
 import { useEffect, useRef } from 'react';
+import useIsMobile from '../hooks/useIsMobile';
 
 const CursorGlow = () => {
     const glowRef = useRef(null);
+    const isMobile = useIsMobile(768);
 
     useEffect(() => {
+        if (isMobile) return;
         const glow = glowRef.current;
         if (!glow) return;
 
@@ -34,7 +37,9 @@ const CursorGlow = () => {
             document.removeEventListener('mousemove', onMouseMove);
             cancelAnimationFrame(animationFrameId);
         };
-    }, []);
+    }, [isMobile]);
+
+    if (isMobile) return null;
 
     return <div className="cursor-glow active" ref={glowRef} id="cursorGlow" />;
 };

@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { MeshTransmissionMaterial, Float, Environment, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
+import useIsMobile from '../hooks/useIsMobile';
 
 // Shared global mouse state so all components can read it
 const globalMouse = { x: 0, y: 0 };
@@ -92,6 +93,10 @@ const LiquidGlassShape = () => {
 };
 
 const Global3DBackground = () => {
+    const isMobile = useIsMobile(768);
+
+    if (isMobile) return null;
+
     return (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none', opacity: 1 }}>
             <Canvas
