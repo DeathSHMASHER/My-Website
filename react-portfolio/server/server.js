@@ -359,7 +359,7 @@ app.post('/api/chat/generate', async (req, res) => {
 
         // Secondary fallback to gemini-2.0-flash-lite
         if (response.status === 429 || response.status === 503) {
-            usedModel = 'gemini-2.0-flash-lite';
+            usedModel = 'gemini-3.1-flash-lite';
             response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
