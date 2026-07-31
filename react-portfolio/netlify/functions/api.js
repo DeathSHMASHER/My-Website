@@ -141,6 +141,15 @@ router.post('/send-otp', async (req, res) => {
     try {
         const { name, username, email } = req.body;
 
+        if (!name || !username || !email) {
+            return res.status(400).json({ error: 'Name, Username, and Email are required' });
+        }
+
+        const emailCheck = await isGenuineEmail(email);
+        if (!emailCheck.valid) {
+            return res.status(400).json({ error: emailCheck.reason });
+        }
+
         const existingUser = await User.findOne({
             $or: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }]
         });
