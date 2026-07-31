@@ -19,18 +19,70 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✅ MongoDB Connected'))
     .catch(err => console.error('❌ MongoDB Error:', err));
 
+const dnsPromises = require('dns').promises;
+
 // Force Node.js to resolve IPv4 addresses to prevent Netlify IPv6 ENETUNREACH errors
-require('dns').setDefaultResultOrder('ipv4first');
+try {
+    require('dns').setDefaultResultOrder('ipv4first');
+} catch (e) {
+    // Ignore
+}
+
+const DISPOSABLE_DOMAINS = new Set([
+    'tempmail.com', 'mailinator.com', '10minutemail.com', 'guerrillamail.com',
+    'dispostable.com', 'trashmail.com', 'yopmail.com', 'sharklasers.com',
+    'getnada.com', 'temp-mail.org', 'throwawaymail.com', 'maildrop.cc', 'fakeinbox.com',
+    'mailnesia.com', 'nada.ltd', 'mohmal.com', 'generator.email'
+]);
+
+async function isGenuineEmail(email) {
+    if (!email || typeof email !== 'string') return { valid: false, reason: 'Email is required' };
+    
+    const cleanEmail = email.trim();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(cleanEmail)) {
+        return { valid: false, reason: 'Invalid email format' };
+    }
+
+    const parts = cleanEmail.split('@');
+    if (parts.length !== 2) return { valid: false, reason: 'Invalid email format' };
+    const domain = parts[1].toLowerCase().trim();
+
+    if (DISPOSABLE_DOMAINS.has(domain)) {
+        return { valid: false, reason: 'Disposable emails not allowed' };
+    }
+
+    try {
+        const mxRecords = await dnsPromises.resolveMx(domain);
+        if (mxRecords && mxRecords.length > 0) {
+            return { valid: true };
+        }
+        return { valid: false, reason: 'Email domain cannot receive messages' };
+    } catch (err) {
+        try {
+            const aRecords = await dnsPromises.resolve4(domain);
+            if (aRecords && aRecords.length > 0) {
+                return { valid: true };
+            }
+            return { valid: false, reason: 'Email domain does not exist' };
+        } catch (aErr) {
+            return { valid: false, reason: 'Invalid or non-existent email domain' };
+        }
+    }
+}
 
 // Email Transporter
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
+    connectionTimeout: 6000,
+    greetingTimeout: 6000,
+    socketTimeout: 6000,
     tls: {
         rejectUnauthorized: false
     }
@@ -406,8 +458,14 @@ app.post('/api/contact', async (req, res) => {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
+        // Validate if email is genuine via MX lookup and format check
+        const emailCheck = await isGenuineEmail(email);
+        if (!emailCheck.valid) {
+            return res.status(400).json({ error: emailCheck.reason });
+        }
+
         // Save to database
-        const contactMsg = new ContactMessage({ name, email, message });
+        const contactMsg = new ContactMessage({ name: name.trim(), email: email.trim(), message: message.trim() });
         await contactMsg.save();
 
         // Send email notification (do not fail API if SMTP fails)

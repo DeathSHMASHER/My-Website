@@ -22,6 +22,8 @@ const Contact = () => {
                 body: JSON.stringify({ name, email, message })
             });
 
+            const data = await response.json().catch(() => ({}));
+
             if (response.ok) {
                 setBtnText('Message Sent! \u2713');
                 setBtnStyle({ background: 'linear-gradient(135deg,#10b981,#059669)' });
@@ -31,12 +33,12 @@ const Contact = () => {
                     e.target.reset();
                 }, 3000);
             } else {
-                setBtnText('Error Sending!');
+                setBtnText(data.error || 'Error Sending!');
                 setBtnStyle({ background: 'linear-gradient(135deg,#ef4444,#dc2626)' });
                 setTimeout(() => {
                     setBtnText('Send Message');
                     setBtnStyle({});
-                }, 3000);
+                }, 4000);
             }
         } catch (error) {
             console.error('Contact form error:', error);
