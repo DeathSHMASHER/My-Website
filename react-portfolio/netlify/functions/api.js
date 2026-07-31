@@ -5,7 +5,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 
-// Correct relative paths to your existing models
+// Correct relative paths to models
 const User = require('../../server/models/User');
 const ChatLog = require('../../server/models/ChatLog');
 const ContactMessage = require('../../server/models/ContactMessage');
@@ -18,25 +18,32 @@ app.use(express.json());
 let cachedDb = null;
 const connectToDatabase = async () => {
     if (cachedDb && mongoose.connection.readyState === 1) return cachedDb;
+    if (!process.env.MONGODB_URI) {
+        throw new Error('MONGODB_URI environment variable is not defined');
+    }
     cachedDb = await mongoose.connect(process.env.MONGODB_URI);
     return cachedDb;
 };
 
-// --- DB CONNECTION MIDDLEWARE (ensures DB is ready for every route) ---
+// --- DB CONNECTION MIDDLEWARE ---
 app.use(async (req, res, next) => {
     try {
         await connectToDatabase();
         next();
     } catch (err) {
         console.error('Database connection failed:', err);
-        res.status(500).json({ error: 'Database connection failed' });
+        res.status(500).json({ error: 'Database connection failed: ' + err.message });
     }
 });
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAIL || '').toLowerCase().split(',').map(e => e.trim());
 
-// Fix: Force Node.js to resolve IPv4 addresses to prevent Netlify IPv6 ENETUNREACH errors
-require('dns').setDefaultResultOrder('ipv4first');
+// Force Node.js to resolve IPv4 addresses to prevent Netlify IPv6 ENETUNREACH errors
+try {
+    require('dns').setDefaultResultOrder('ipv4first');
+} catch (e) {
+    // Ignore if unsupported
+}
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -46,11 +53,18 @@ const transporter = nodemailer.createTransport({
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
+    tls: {
+        rejectUnauthorized: false
+    }
 });
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 const sendOTPEmail = async (to, otp, subject = '🔐 Your Verification OTP Code') => {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.warn('EMAIL_USER or EMAIL_PASS missing, skipping sendOTPEmail');
+        return;
+    }
     await transporter.sendMail({
         from: `"Shahriyar's Portfolio" <${process.env.EMAIL_USER}>`,
         to,
@@ -66,13 +80,16 @@ const sendOTPEmail = async (to, otp, subject = '🔐 Your Verification OTP Code'
     });
 };
 
+// Create Express Router for robust path matching across all Netlify redirects
+const router = express.Router();
+
 // Health Check / Warm-up ping route
-app.get('/api/ping', (req, res) => res.json({ status: 'ok', time: new Date() }));
+router.get('/ping', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
 // ==================== AUTH ROUTES ====================
 
-// Step 1: Send OTP (Registration — creates unverified user with name, username, email)
-app.post('/api/send-otp', async (req, res) => {
+// Step 1: Send OTP
+router.post('/send-otp', async (req, res) => {
     try {
         const { name, username, email } = req.body;
 
@@ -85,7 +102,6 @@ app.post('/api/send-otp', async (req, res) => {
                 if (existingUser.email === email.toLowerCase()) return res.status(400).json({ error: 'Email already registered' });
                 return res.status(400).json({ error: 'Username already taken' });
             }
-            // If unverified, update info and resend OTP
             existingUser.name = name;
             existingUser.username = username.toLowerCase();
             existingUser.email = email.toLowerCase();
@@ -111,13 +127,12 @@ app.post('/api/send-otp', async (req, res) => {
         res.json({ message: 'OTP sent to your email', userId: user._id });
     } catch (error) {
         console.error('Send OTP Error:', error.message);
-        console.error('Full Error:', error);
         res.status(500).json({ error: 'Failed to send OTP: ' + error.message });
     }
 });
 
-// Step 2: Verify Email OTP (registration)
-app.post('/api/verify-email', async (req, res) => {
+// Step 2: Verify Email OTP
+router.post('/verify-email', async (req, res) => {
     try {
         const { userId, otp } = req.body;
         const user = await User.findById(userId);
@@ -137,8 +152,8 @@ app.post('/api/verify-email', async (req, res) => {
     }
 });
 
-// Step 3: Complete Registration (phone + password)
-app.post('/api/complete-registration', async (req, res) => {
+// Step 3: Complete Registration
+router.post('/complete-registration', async (req, res) => {
     try {
         const { userId, phone, password } = req.body;
         const user = await User.findById(userId);
@@ -161,9 +176,12 @@ app.post('/api/complete-registration', async (req, res) => {
 });
 
 // Login
-app.post('/api/login', async (req, res) => {
+router.post('/login', async (req, res) => {
     try {
         const { identifier, password } = req.body;
+        if (!identifier || !password) {
+            return res.status(400).json({ error: 'Email/Username and password are required' });
+        }
         const user = await User.findOne({
             $or: [{ email: identifier.toLowerCase() }, { username: identifier.toLowerCase() }],
         });
@@ -183,14 +201,13 @@ app.post('/api/login', async (req, res) => {
         });
     } catch (error) {
         console.error('Login Error:', error);
-        res.status(500).json({ error: 'Login failed' });
+        res.status(500).json({ error: 'Login failed: ' + error.message });
     }
 });
 
 // ==================== FORGOT PASSWORD ====================
 
-// Send forgot password OTP
-app.post('/api/forgot-password', async (req, res) => {
+router.post('/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
         const user = await User.findOne({ email: email.toLowerCase(), isVerified: true });
@@ -209,8 +226,7 @@ app.post('/api/forgot-password', async (req, res) => {
     }
 });
 
-// Verify forgot password OTP
-app.post('/api/verify-forgot-otp', async (req, res) => {
+router.post('/verify-forgot-otp', async (req, res) => {
     try {
         const { userId, otp } = req.body;
         const user = await User.findById(userId);
@@ -229,8 +245,7 @@ app.post('/api/verify-forgot-otp', async (req, res) => {
     }
 });
 
-// Reset password
-app.post('/api/reset-password', async (req, res) => {
+router.post('/reset-password', async (req, res) => {
     try {
         const { userId, password } = req.body;
         const user = await User.findById(userId);
@@ -248,7 +263,7 @@ app.post('/api/reset-password', async (req, res) => {
 
 // ==================== CHAT LOG & AI ROUTES ====================
 
-app.post('/api/chat/save', async (req, res) => {
+router.post('/chat/save', async (req, res) => {
     try {
         const { userId, messages } = req.body;
         if (!userId || !messages || !messages.length) {
@@ -280,7 +295,7 @@ function getGoogleDriveId(url) {
 
 let cachedResumeData = null;
 let lastResumeFetchTime = 0;
-const RESUME_CACHE_TTL = 5 * 60 * 1000; // 5 mins cache TTL
+const RESUME_CACHE_TTL = 5 * 60 * 1000;
 
 async function getResumeInlineData() {
     const now = Date.now();
@@ -303,7 +318,6 @@ async function getResumeInlineData() {
             }
         };
         lastResumeFetchTime = now;
-        console.log('✅ [Netlify Resume Service] Dynamically fetched latest resume PDF from link!');
         return cachedResumeData;
     } catch (err) {
         console.error('❌ [Netlify Resume Service] Error fetching resume:', err.message);
@@ -311,7 +325,7 @@ async function getResumeInlineData() {
     }
 }
 
-app.post('/api/chat/generate', async (req, res) => {
+router.post('/chat/generate', async (req, res) => {
     try {
         let { historyForAPI, SYSTEM_PROMPT } = req.body;
         const API_KEY = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : null;
@@ -320,7 +334,6 @@ app.post('/api/chat/generate', async (req, res) => {
             return res.status(500).json({ error: 'Server configuration error: Gemini API key missing' });
         }
 
-        // Dynamically attach the latest live resume PDF as inline data if available
         const resumeData = await getResumeInlineData();
         if (resumeData && historyForAPI && historyForAPI.length > 0) {
             const firstUserMsgIndex = historyForAPI.findIndex(m => m.role === 'user');
@@ -347,7 +360,7 @@ app.post('/api/chat/generate', async (req, res) => {
             },
             generationConfig: {
                 temperature: 0.85,
-                maxOutputTokens: 600,
+                maxOutputTokens: 2500,
             },
             safetySettings
         });
@@ -359,7 +372,6 @@ app.post('/api/chat/generate', async (req, res) => {
             body: requestBody
         });
 
-        // Silent fallback to gemini-3.1-flash-lite if 429 / 503
         if (response.status === 429 || response.status === 503) {
             usedModel = 'gemini-3.5-flash-lite';
             response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${API_KEY}`, {
@@ -369,7 +381,6 @@ app.post('/api/chat/generate', async (req, res) => {
             });
         }
 
-        // Secondary fallback to gemini-2.0-flash-lite
         if (response.status === 429 || response.status === 503) {
             usedModel = 'gemini-3.1-flash-lite';
             response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${API_KEY}`, {
@@ -386,7 +397,6 @@ app.post('/api/chat/generate', async (req, res) => {
         }
 
         const data = await response.json();
-        // Filter out internal thinking/reasoning parts
         if (data.candidates?.[0]?.content?.parts) {
             const nonThought = data.candidates[0].content.parts.filter(p => !p.thought);
             if (nonThought.length > 0) {
@@ -404,7 +414,7 @@ app.post('/api/chat/generate', async (req, res) => {
 
 // ==================== CONTACT FORM ====================
 
-app.post('/api/contact', async (req, res) => {
+router.post('/contact', async (req, res) => {
     try {
         const { name, email, message } = req.body;
 
@@ -412,33 +422,39 @@ app.post('/api/contact', async (req, res) => {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
-        const mailOptions = {
-            from: `"${name} (Portfolio)" <${process.env.EMAIL_USER}>`,
-            replyTo: email,
-            to: 'shahriyartaufik@gmail.com',
-            subject: `New Portfolio Message from ${name}`,
-            html: `
-                <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; max-width: 600px; background: #0a0a1e; color: #fff; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                    <h2 style="color: #6C63FF; margin-top: 0;">New Contact Message</h2>
-                    <p style="color: #ccc;"><strong>Name:</strong> ${name}</p>
-                    <p style="color: #ccc;"><strong>Email:</strong> ${email}</p>
-                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;">
-                        <p style="margin: 0; white-space: pre-wrap; color: #fff;">${message}</p>
-                    </div>
-                </div>
-            `,
-        };
-
-        // Save to database
+        // 1. Save to MongoDB database
         const contactMsg = new ContactMessage({ name, email, message });
         await contactMsg.save();
 
-        // Send email notification
-        await transporter.sendMail(mailOptions);
+        // 2. Send email notification (do not fail API if SMTP fails)
+        try {
+            if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+                const mailOptions = {
+                    from: `"${name} (Portfolio)" <${process.env.EMAIL_USER}>`,
+                    replyTo: email,
+                    to: 'shahriyartaufik@gmail.com',
+                    subject: `New Portfolio Message from ${name}`,
+                    html: `
+                        <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; max-width: 600px; background: #0a0a1e; color: #fff; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                            <h2 style="color: #6C63FF; margin-top: 0;">New Contact Message</h2>
+                            <p style="color: #ccc;"><strong>Name:</strong> ${name}</p>
+                            <p style="color: #ccc;"><strong>Email:</strong> ${email}</p>
+                            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;">
+                                <p style="margin: 0; white-space: pre-wrap; color: #fff;">${message}</p>
+                            </div>
+                        </div>
+                    `,
+                };
+                await transporter.sendMail(mailOptions);
+            }
+        } catch (emailErr) {
+            console.error('Contact Email Notification Error (Message saved to DB regardless):', emailErr.message);
+        }
+
         res.json({ message: 'Message sent successfully' });
     } catch (error) {
         console.error('Contact Form Error:', error);
-        res.status(500).json({ error: 'Failed to send message' });
+        res.status(500).json({ error: 'Failed to send message: ' + error.message });
     }
 });
 
@@ -452,7 +468,7 @@ const requireAdmin = async (req, res, next) => {
     next();
 };
 
-app.get('/api/admin/users', requireAdmin, async (req, res) => {
+router.get('/admin/users', requireAdmin, async (req, res) => {
     try {
         const users = await User.find({ isVerified: true })
             .select('-password -otp -otpExpiry')
@@ -476,7 +492,7 @@ app.get('/api/admin/users', requireAdmin, async (req, res) => {
     }
 });
 
-app.get('/api/admin/users/:userId/chats', requireAdmin, async (req, res) => {
+router.get('/admin/users/:userId/chats', requireAdmin, async (req, res) => {
     try {
         const user = await User.findById(req.params.userId).select('-password -otp -otpExpiry');
         if (!user) return res.status(404).json({ error: 'User not found' });
@@ -488,8 +504,7 @@ app.get('/api/admin/users/:userId/chats', requireAdmin, async (req, res) => {
     }
 });
 
-// Admin: Get all contact messages
-app.get('/api/admin/contact-messages', requireAdmin, async (req, res) => {
+router.get('/admin/contact-messages', requireAdmin, async (req, res) => {
     try {
         const messages = await ContactMessage.find().sort({ createdAt: -1 });
         res.json({ messages, totalMessages: messages.length });
@@ -499,8 +514,7 @@ app.get('/api/admin/contact-messages', requireAdmin, async (req, res) => {
     }
 });
 
-// Admin: Mark contact message as read
-app.patch('/api/admin/contact-messages/:id/read', requireAdmin, async (req, res) => {
+router.patch('/admin/contact-messages/:id/read', requireAdmin, async (req, res) => {
     try {
         const msg = await ContactMessage.findById(req.params.id);
         if (!msg) return res.status(404).json({ error: 'Message not found' });
@@ -513,8 +527,7 @@ app.patch('/api/admin/contact-messages/:id/read', requireAdmin, async (req, res)
     }
 });
 
-// Admin: Delete a specific chat session
-app.delete('/api/admin/users/:userId/chats/:chatId', requireAdmin, async (req, res) => {
+router.delete('/admin/users/:userId/chats/:chatId', requireAdmin, async (req, res) => {
     try {
         const result = await ChatLog.findOneAndDelete({ _id: req.params.chatId, userId: req.params.userId });
         if (!result) return res.status(404).json({ error: 'Chat session not found' });
@@ -525,8 +538,7 @@ app.delete('/api/admin/users/:userId/chats/:chatId', requireAdmin, async (req, r
     }
 });
 
-// Admin: Delete a contact message
-app.delete('/api/admin/contact-messages/:id', requireAdmin, async (req, res) => {
+router.delete('/admin/contact-messages/:id', requireAdmin, async (req, res) => {
     try {
         const result = await ContactMessage.findByIdAndDelete(req.params.id);
         if (!result) return res.status(404).json({ error: 'Message not found' });
@@ -536,6 +548,11 @@ app.delete('/api/admin/contact-messages/:id', requireAdmin, async (req, res) => 
         res.status(500).json({ error: 'Failed to delete contact message' });
     }
 });
+
+// Mount router on all path prefixes
+app.use('/api', router);
+app.use('/.netlify/functions/api', router);
+app.use('/', router);
 
 // --- SERVERLESS EXPORT ---
 const handler = serverless(app);

@@ -31,6 +31,9 @@ const transporter = nodemailer.createTransport({
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
+    tls: {
+        rejectUnauthorized: false
+    }
 });
 
 // Generate 6-digit OTP
@@ -338,7 +341,7 @@ app.post('/api/chat/generate', async (req, res) => {
             },
             generationConfig: {
                 temperature: 0.85,
-                maxOutputTokens: 600,
+                maxOutputTokens: 2500,
             },
             safetySettings
         });
@@ -403,33 +406,39 @@ app.post('/api/contact', async (req, res) => {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
-        const mailOptions = {
-            from: `"${name} (Portfolio)" <${process.env.EMAIL_USER}>`,
-            replyTo: email,
-            to: 'shahriyartaufik@gmail.com',
-            subject: `New Portfolio Message from ${name}`,
-            html: `
-                <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; max-width: 600px; background: #0a0a1e; color: #fff; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                    <h2 style="color: #6C63FF; margin-top: 0;">New Contact Message</h2>
-                    <p style="color: #ccc;"><strong>Name:</strong> ${name}</p>
-                    <p style="color: #ccc;"><strong>Email:</strong> ${email}</p>
-                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;">
-                        <p style="margin: 0; white-space: pre-wrap; color: #fff;">${message}</p>
-                    </div>
-                </div>
-            `,
-        };
-
         // Save to database
         const contactMsg = new ContactMessage({ name, email, message });
         await contactMsg.save();
 
-        // Send email notification
-        await transporter.sendMail(mailOptions);
+        // Send email notification (do not fail API if SMTP fails)
+        try {
+            if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+                const mailOptions = {
+                    from: `"${name} (Portfolio)" <${process.env.EMAIL_USER}>`,
+                    replyTo: email,
+                    to: 'shahriyartaufik@gmail.com',
+                    subject: `New Portfolio Message from ${name}`,
+                    html: `
+                        <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; max-width: 600px; background: #0a0a1e; color: #fff; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                            <h2 style="color: #6C63FF; margin-top: 0;">New Contact Message</h2>
+                            <p style="color: #ccc;"><strong>Name:</strong> ${name}</p>
+                            <p style="color: #ccc;"><strong>Email:</strong> ${email}</p>
+                            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;">
+                                <p style="margin: 0; white-space: pre-wrap; color: #fff;">${message}</p>
+                            </div>
+                        </div>
+                    `,
+                };
+                await transporter.sendMail(mailOptions);
+            }
+        } catch (emailErr) {
+            console.error('Contact Email Notification Error (Message saved to DB regardless):', emailErr.message);
+        }
+
         res.json({ message: 'Message sent successfully' });
     } catch (error) {
         console.error('Contact Form Error:', error);
-        res.status(500).json({ error: 'Failed to send message' });
+        res.status(500).json({ error: 'Failed to send message: ' + error.message });
     }
 });
 
