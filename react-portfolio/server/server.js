@@ -53,36 +53,31 @@ async function isGenuineEmail(email) {
     }
 
     try {
-        const mxRecords = await dnsPromises.resolveMx(domain);
+        const mxPromise = dnsPromises.resolveMx(domain);
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('DNS Timeout')), 2000));
+        const mxRecords = await Promise.race([mxPromise, timeoutPromise]);
         if (mxRecords && mxRecords.length > 0) {
             return { valid: true };
         }
-        return { valid: false, reason: 'Email domain cannot receive messages' };
+        const aRecords = await dnsPromises.resolve4(domain);
+        if (aRecords && aRecords.length > 0) return { valid: true };
+        return { valid: false, reason: 'Email domain does not exist' };
     } catch (err) {
-        try {
-            const aRecords = await dnsPromises.resolve4(domain);
-            if (aRecords && aRecords.length > 0) {
-                return { valid: true };
-            }
-            return { valid: false, reason: 'Email domain does not exist' };
-        } catch (aErr) {
-            return { valid: false, reason: 'Invalid or non-existent email domain' };
-        }
+        console.warn(`DNS check fallback for ${domain} (${err.message}). Accepting valid RFC format.`);
+        return { valid: true };
     }
 }
 
 // Email Transporter
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
+    service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : '',
+        pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : '',
     },
-    connectionTimeout: 6000,
-    greetingTimeout: 6000,
-    socketTimeout: 6000,
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 8000,
     tls: {
         rejectUnauthorized: false
     }
