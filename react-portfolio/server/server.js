@@ -93,6 +93,9 @@ const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
 
 // OTP Email Template
 const sendOTPEmail = async (to, otp, subject = '🔐 Your Verification OTP Code') => {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        throw new Error('Email credentials (EMAIL_USER & EMAIL_PASS) are not configured');
+    }
     await transporter.sendMail({
         from: `"Shahriyar's Portfolio" <${process.env.EMAIL_USER}>`,
         to,

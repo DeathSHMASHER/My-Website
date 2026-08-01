@@ -110,8 +110,7 @@ const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
 
 const sendOTPEmail = async (to, otp, subject = '🔐 Your Verification OTP Code') => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.warn('EMAIL_USER or EMAIL_PASS missing, skipping sendOTPEmail');
-        return;
+        throw new Error('Email credentials (EMAIL_USER & EMAIL_PASS) are not configured in Netlify Environment Variables');
     }
     await transporter.sendMail({
         from: `"Shahriyar's Portfolio" <${process.env.EMAIL_USER}>`,
