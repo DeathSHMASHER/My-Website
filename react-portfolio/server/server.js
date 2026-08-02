@@ -54,21 +54,20 @@ async function isGenuineEmail(email) {
 
     try {
         const mxPromise = dnsPromises.resolveMx(domain);
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('DNS Timeout')), 2000));
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('DNS Timeout')), 1000));
         const mxRecords = await Promise.race([mxPromise, timeoutPromise]);
         if (mxRecords && mxRecords.length > 0) {
             return { valid: true };
         }
-        const aRecords = await dnsPromises.resolve4(domain);
-        if (aRecords && aRecords.length > 0) return { valid: true };
-        return { valid: false, reason: 'Email domain does not exist' };
+        return { valid: true };
     } catch (err) {
-        console.warn(`DNS check fallback for ${domain} (${err.message}). Accepting valid RFC format.`);
         return { valid: true };
     }
 }
 
-// Email Transporter
+const { Resend } = require('resend');
+
+// Email Transporter (Nodemailer fallback)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -83,31 +82,69 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Unified Email Helper: Uses Resend API when RESEND_API_KEY is available, else falls back to Nodemailer
+const sendMailHelper = async ({ to, subject, html, replyTo, fromName }) => {
+    const resendApiKey = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.trim() : '';
+
+    if (resendApiKey) {
+        const resend = new Resend(resendApiKey);
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+        const senderName = fromName || "Shahriyar's Portfolio";
+        
+        const payload = {
+            from: `${senderName} <${fromEmail}>`,
+            to: Array.isArray(to) ? to : [to],
+            subject,
+            html,
+        };
+        if (replyTo) {
+            payload.reply_to = replyTo;
+        }
+
+        const { data, error } = await resend.emails.send(payload);
+        if (error) {
+            console.error('❌ Resend API Error:', error);
+            throw new Error(`Resend API Error: ${error.message || JSON.stringify(error)}`);
+        }
+        console.log('✅ Email sent via Resend API:', data?.id);
+        return data;
+    }
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        throw new Error('Email credentials (RESEND_API_KEY or EMAIL_USER & EMAIL_PASS) are not configured');
+    }
+
+    const mailOptions = {
+        from: `"${fromName || "Shahriyar's Portfolio"}" <${process.env.EMAIL_USER.trim()}>`,
+        to,
+        subject,
+        html,
+    };
+    if (replyTo) mailOptions.replyTo = replyTo;
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent via Nodemailer SMTP:', info?.messageId);
+    return info;
+};
+
 // Generate 6-digit OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 // OTP Email Template
 const sendOTPEmail = async (to, otp, subject = '🔐 Your Verification OTP Code') => {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        throw new Error('Email credentials (EMAIL_USER & EMAIL_PASS) are not configured');
-    }
-    await transporter.sendMail({
-        from: `"Shahriyar's Portfolio" <${process.env.EMAIL_USER}>`,
-        to,
-        subject,
-        html: `
-            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, #0a0a1e 0%, #1a1a3e 100%); border-radius: 16px; padding: 40px; color: #fff;">
-                <h2 style="text-align: center; background: linear-gradient(135deg, #6C63FF, #00D4FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px;">Shahriyar's Portfolio</h2>
-                <p style="text-align: center; color: #aaa; font-size: 14px; margin-bottom: 30px;">Verification Code</p>
-                <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 28px; text-align: center; margin-bottom: 24px;">
-                    <p style="color: #ccc; margin: 0 0 12px 0;">Your OTP code is:</p>
-                    <h1 style="letter-spacing: 12px; font-size: 36px; margin: 0; color: #fff;"><b>${otp}</b></h1>
-                </div>
-                <p style="text-align: center; color: #888; font-size: 13px;">This code expires in <strong style="color: #00d4ff;">10 minutes</strong>.</p>
-                <p style="text-align: center; color: #666; font-size: 12px; margin-top: 24px;">If you didn't request this, please ignore this email.</p>
+    const html = `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, #0a0a1e 0%, #1a1a3e 100%); border-radius: 16px; padding: 40px; color: #fff;">
+            <h2 style="text-align: center; background: linear-gradient(135deg, #6C63FF, #00D4FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px;">Shahriyar's Portfolio</h2>
+            <p style="text-align: center; color: #aaa; font-size: 14px; margin-bottom: 30px;">Verification Code</p>
+            <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 28px; text-align: center; margin-bottom: 24px;">
+                <p style="color: #ccc; margin: 0 0 12px 0;">Your OTP code is:</p>
+                <h1 style="letter-spacing: 12px; font-size: 36px; margin: 0; color: #fff;"><b>${otp}</b></h1>
             </div>
-        `,
-    });
+            <p style="text-align: center; color: #888; font-size: 13px;">This code expires in <strong style="color: #00d4ff;">10 minutes</strong>.</p>
+            <p style="text-align: center; color: #666; font-size: 12px; margin-top: 24px;">If you didn't request this, please ignore this email.</p>
+        </div>
+    `;
+    await sendMailHelper({ to, subject, html, fromName: "Shahriyar's Portfolio" });
 };
 
 // Health Check / Warm-up ping route
@@ -475,27 +512,25 @@ app.post('/api/contact', async (req, res) => {
         const contactMsg = new ContactMessage({ name: name.trim(), email: email.trim(), message: message.trim() });
         await contactMsg.save();
 
-        // Send email notification (do not fail API if SMTP fails)
+        // Send email notification (do not fail API if notification fails)
         try {
-            if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-                const mailOptions = {
-                    from: `"${name} (Portfolio)" <${process.env.EMAIL_USER}>`,
-                    replyTo: email,
-                    to: 'shahriyartaufik@gmail.com',
-                    subject: `New Portfolio Message from ${name}`,
-                    html: `
-                        <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; max-width: 600px; background: #0a0a1e; color: #fff; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                            <h2 style="color: #6C63FF; margin-top: 0;">New Contact Message</h2>
-                            <p style="color: #ccc;"><strong>Name:</strong> ${name}</p>
-                            <p style="color: #ccc;"><strong>Email:</strong> ${email}</p>
-                            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;">
-                                <p style="margin: 0; white-space: pre-wrap; color: #fff;">${message}</p>
-                            </div>
+            const recipientEmail = process.env.ADMIN_NOTIFY_EMAIL || 'shahriyartaufik@gmail.com';
+            await sendMailHelper({
+                to: recipientEmail,
+                subject: `New Portfolio Message from ${name}`,
+                replyTo: email,
+                fromName: `${name} (Portfolio)`,
+                html: `
+                    <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; max-width: 600px; background: #0a0a1e; color: #fff; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                        <h2 style="color: #6C63FF; margin-top: 0;">New Contact Message</h2>
+                        <p style="color: #ccc;"><strong>Name:</strong> ${name}</p>
+                        <p style="color: #ccc;"><strong>Email:</strong> ${email}</p>
+                        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;">
+                            <p style="margin: 0; white-space: pre-wrap; color: #fff;">${message}</p>
                         </div>
-                    `,
-                };
-                await transporter.sendMail(mailOptions);
-            }
+                    </div>
+                `,
+            });
         } catch (emailErr) {
             console.error('Contact Email Notification Error (Message saved to DB regardless):', emailErr.message);
         }
