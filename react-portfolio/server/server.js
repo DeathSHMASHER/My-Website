@@ -88,10 +88,10 @@ const sendMailHelper = async ({ to, subject, html, replyTo, fromName }) => {
 
     if (resendApiKey) {
         const resend = new Resend(resendApiKey);
-        const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+        let fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
         const senderName = fromName || "Shahriyar's Portfolio";
         
-        const payload = {
+        let payload = {
             from: `${senderName} <${fromEmail}>`,
             to: Array.isArray(to) ? to : [to],
             subject,
@@ -101,7 +101,17 @@ const sendMailHelper = async ({ to, subject, html, replyTo, fromName }) => {
             payload.reply_to = replyTo;
         }
 
-        const { data, error } = await resend.emails.send(payload);
+        let { data, error } = await resend.emails.send(payload);
+
+        // Automatic fallback to onboarding@resend.dev if custom domain is not yet verified
+        if (error && (error.message || '').toLowerCase().includes('not verified') && fromEmail !== 'onboarding@resend.dev') {
+            console.warn(`⚠️ Custom domain ${fromEmail} is unverified. Falling back to onboarding@resend.dev...`);
+            payload.from = `${senderName} <onboarding@resend.dev>`;
+            const fallbackRes = await resend.emails.send(payload);
+            data = fallbackRes.data;
+            error = fallbackRes.error;
+        }
+
         if (error) {
             console.error('❌ Resend API Error:', error);
             throw new Error(`Resend API Error: ${error.message || JSON.stringify(error)}`);
