@@ -261,7 +261,7 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
 
                 if (aiText.includes('[ACTION: OPEN_RESUME]')) {
                     // Open resume in a new tab
-                    window.open('https://drive.google.com/file/d/1HhX534tO8exquYUH4rBA5l80MiG7tH1F/view', '_blank');
+                    window.open('https://drive.google.com/file/d/1YqizTdSutOQHYIVAh-9eEewB_9acoiad/view', '_blank');
                     aiText = aiText.replace('[ACTION: OPEN_RESUME]', '').trim();
                 }
 
