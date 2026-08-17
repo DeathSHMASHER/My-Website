@@ -11,6 +11,19 @@ const AdminDashboard = ({ isOpen, onClose, adminEmail }) => {
     const [userChats, setUserChats] = useState({});
     const [loadingChats, setLoadingChats] = useState(null);
 
+    const getAuthHeaders = () => {
+        const headers = { 'Content-Type': 'application/json' };
+        try {
+            const stored = localStorage.getItem('loggedInUser');
+            if (stored) {
+                const u = JSON.parse(stored);
+                if (u.token) headers['Authorization'] = `Bearer ${u.token}`;
+            }
+        } catch { }
+        if (adminEmail) headers['x-admin-email'] = adminEmail;
+        return headers;
+    };
+
     useEffect(() => {
         if (isOpen) fetchUsers();
     }, [isOpen]);
@@ -19,7 +32,7 @@ const AdminDashboard = ({ isOpen, onClose, adminEmail }) => {
         setLoading(true);
         try {
             const res = await fetch(`${API_URL}/admin/users`, {
-                headers: { 'x-admin-email': adminEmail },
+                headers: getAuthHeaders(),
             });
             const data = await res.json();
             if (res.ok) {
@@ -41,7 +54,7 @@ const AdminDashboard = ({ isOpen, onClose, adminEmail }) => {
         setLoadingChats(userId);
         try {
             const res = await fetch(`${API_URL}/admin/users/${userId}/chats`, {
-                headers: { 'x-admin-email': adminEmail },
+                headers: getAuthHeaders(),
             });
             const data = await res.json();
             if (res.ok) {

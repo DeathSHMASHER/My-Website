@@ -15,11 +15,13 @@ async function resetPassword() {
             process.exit(1);
         }
 
-        user.password = await bcrypt.hash('Admin123!', 12);
+        const newPass = process.argv[2] || process.env.NEW_PASSWORD || 'Admin123!';
+        user.password = await bcrypt.hash(newPass, 12);
         user.isVerified = true;
         await user.save();
 
         console.log('Successfully reset password for', user.email);
+        console.log('Password set to:', newPass);
         process.exit(0);
     } catch (err) {
         console.error('Error:', err);

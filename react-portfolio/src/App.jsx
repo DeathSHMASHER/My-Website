@@ -23,7 +23,7 @@ function App() {
 
   // Warm up backend on page load (wakes up sleeping Render free instance immediately)
   useEffect(() => {
-    fetch(`${API_URL}/ping`).catch(() => {});
+    fetch(`${API_URL}/ping`).catch(() => { });
   }, []);
 
   const [loggedInUser, setLoggedInUserState] = useState(() => {

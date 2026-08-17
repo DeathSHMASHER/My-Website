@@ -5,6 +5,7 @@ import { API_URL } from '../config';
 
 const AdminPage = () => {
     const [adminEmail, setAdminEmail] = useState(null);
+    const [adminToken, setAdminToken] = useState(null);
     const [activeTab, setActiveTab] = useState('users');
     const [users, setUsers] = useState([]);
     const [totalUsers, setTotalUsers] = useState(0);
@@ -21,11 +22,17 @@ const AdminPage = () => {
     useEffect(() => {
         const storedUser = localStorage.getItem('loggedInUser');
         if (storedUser) {
-            const user = JSON.parse(storedUser);
-            if (user.isAdmin) {
-                setAdminEmail(user.email);
-            } else {
-                setError('Access denied. Admin privileges required.');
+            try {
+                const user = JSON.parse(storedUser);
+                if (user.isAdmin) {
+                    setAdminEmail(user.email);
+                    setAdminToken(user.token);
+                } else {
+                    setError('Access denied. Admin privileges required.');
+                    setLoading(false);
+                }
+            } catch {
+                setError('Invalid session. Please log in again.');
                 setLoading(false);
             }
         } else {
@@ -34,18 +41,25 @@ const AdminPage = () => {
         }
     }, []);
 
+    const getAuthHeaders = () => {
+        const headers = { 'Content-Type': 'application/json' };
+        if (adminToken) headers['Authorization'] = `Bearer ${adminToken}`;
+        if (adminEmail) headers['x-admin-email'] = adminEmail;
+        return headers;
+    };
+
     useEffect(() => {
         if (adminEmail) {
             fetchUsers();
             fetchContactMessages();
         }
-    }, [adminEmail]);
+    }, [adminEmail, adminToken]);
 
     const fetchUsers = async () => {
         setLoading(true);
         try {
             const res = await fetch(`${API_URL}/admin/users`, {
-                headers: { 'x-admin-email': adminEmail },
+                headers: getAuthHeaders(),
             });
             const data = await res.json();
             if (res.ok) {
@@ -66,7 +80,7 @@ const AdminPage = () => {
         setLoadingMessages(true);
         try {
             const res = await fetch(`${API_URL}/admin/contact-messages`, {
-                headers: { 'x-admin-email': adminEmail },
+                headers: getAuthHeaders(),
             });
             const data = await res.json();
             if (res.ok) {
@@ -84,7 +98,7 @@ const AdminPage = () => {
         try {
             const res = await fetch(`${API_URL}/admin/contact-messages/${msgId}/read`, {
                 method: 'PATCH',
-                headers: { 'x-admin-email': adminEmail },
+                headers: getAuthHeaders(),
             });
             if (res.ok) {
                 setContactMessages(prev =>
@@ -108,7 +122,7 @@ const AdminPage = () => {
         setLoadingChats(userId);
         try {
             const res = await fetch(`${API_URL}/admin/users/${userId}/chats`, {
-                headers: { 'x-admin-email': adminEmail },
+                headers: getAuthHeaders(),
             });
             const data = await res.json();
             if (res.ok) {
@@ -149,7 +163,7 @@ const AdminPage = () => {
         try {
             const res = await fetch(`${API_URL}/admin/users/${userId}/chats/${chatId}`, {
                 method: 'DELETE',
-                headers: { 'x-admin-email': adminEmail },
+                headers: getAuthHeaders(),
             });
             if (res.ok) {
                 setUserChats(prev => {
@@ -178,7 +192,7 @@ const AdminPage = () => {
         try {
             const res = await fetch(`${API_URL}/admin/contact-messages/${msgId}`, {
                 method: 'DELETE',
-                headers: { 'x-admin-email': adminEmail },
+                headers: getAuthHeaders(),
             });
             if (res.ok) {
                 setContactMessages(prev => prev.filter(m => m._id !== msgId));

@@ -1,5 +1,4 @@
 node_modules/
-.env
 dist/
 build/
 .vscode/
@@ -7,3 +6,12 @@ build/
 *.log 
 venv/
 __pycache__/
+
+# Environment Variables & Secrets
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+**/.env.local
+

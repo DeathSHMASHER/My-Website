@@ -120,9 +120,13 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
     const saveChatToServer = async () => {
         if (!loggedInUser || messages.length <= 1) return;
         try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (loggedInUser.token) {
+                headers['Authorization'] = `Bearer ${loggedInUser.token}`;
+            }
             await fetch(`${API_URL}/chat/save`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({
                     userId: loggedInUser.id,
                     messages: messages.filter((m, i) => i > 0), // skip the initial greeting
@@ -321,7 +325,7 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
                     onClick={() => setIsOpen(true)}
                     aria-label="Open Altis AI Assistant"
                 >
-                    <Sparkles size={22} className="ai-sparkle-icon" />
+                    <Sparkles size={18} className="ai-sparkle-icon" style={{ flexShrink: 0 }} />
                     <span className="chatbot-floating-label">Ask Altis AI</span>
                 </button>
             )}

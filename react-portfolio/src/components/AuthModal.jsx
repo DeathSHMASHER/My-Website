@@ -33,6 +33,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }) => {
     const [forgotEmail, setForgotEmail] = useState('');
     const [forgotOtp, setForgotOtp] = useState('');
     const [forgotUserId, setForgotUserId] = useState(null);
+    const [forgotResetToken, setForgotResetToken] = useState(null);
     const [newPassword, setNewPassword] = useState('');
 
     const clearAll = () => {
@@ -40,7 +41,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }) => {
         setLoginId(''); setLoginPass('');
         setRegName(''); setRegUsername(''); setRegEmail(''); setRegOtp(''); setRegPhone(''); setRegPassword('');
         setPendingUserId(null); setEmailVerified(false);
-        setForgotEmail(''); setForgotOtp(''); setForgotUserId(null); setNewPassword('');
+        setForgotEmail(''); setForgotOtp(''); setForgotUserId(null); setForgotResetToken(null); setNewPassword('');
     };
 
     const switchView = (v) => { clearAll(); setView(v); };
@@ -138,6 +139,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }) => {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
+            setForgotResetToken(data.resetToken);
             setView('forgot-newpass');
             setSuccess('OTP verified! Set your new password.');
         } catch (err) { setError(err.message); } finally { setLoading(false); }
@@ -147,11 +149,12 @@ const AuthModal = ({ isOpen, onClose, onLogin }) => {
     const handleResetPassword = async (e) => {
         e.preventDefault();
         if (newPassword.length < 6) { setError('Password must be at least 6 characters'); return; }
+        if (!forgotResetToken) { setError('Reset token missing. Please verify OTP again.'); return; }
         setError(''); setLoading(true);
         try {
             const res = await fetch(`${API_URL}/reset-password`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: forgotUserId, password: newPassword }),
+                body: JSON.stringify({ userId: forgotUserId, resetToken: forgotResetToken, password: newPassword }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);

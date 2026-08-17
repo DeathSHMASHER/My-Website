@@ -23,5 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment Variables & Secrets
 .env
-react-portfolio/server/.env
+.env.*
+*.env
+**/.env
+**/.env.*
+**/.env.local
+
