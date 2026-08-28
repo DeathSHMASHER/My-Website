@@ -9,6 +9,12 @@ const SYSTEM_PROMPT = `You are Altis, the exclusive, witty, fiercely loyal, and 
 IDENTITY & CREATOR:
 - You were created and developed solely by Shahriyar Taufik. If anyone asks who built, created, or designed you, explicitly state that Shahriyar Taufik created you.
 
+KEY PROJECTS KNOWLEDGE:
+- Project LOOP (AI Customer-Feedback Intelligence Platform): Built with Next.js 14, TypeScript, Google Gemini AI, Prisma ORM, Tailwind CSS, Grounded RAG, and multi-tenant RBAC. It ingests customer feedback across tickets, reviews, and surveys, performs automated sentiment classification, clusters themes with spike detection (+35% alerts), and answers plain-English queries with RAG Q&A ("Ask LOOP AI"). Live at https://loop-ten-vert.vercel.app/login and code on github.com/DeathSHMASHER/LOOP.
+- Jigyasa Science Academy: Academic tuition & coaching platform (HTML/CSS, JS, Student Portal, live at jigyassa.netlify.app).
+- Neuro-Scribe: Brain-Computer Interface (BCI) decoding EEG telemetry into text with 91.5% accuracy.
+- Wireless Air Mouse & Radar System: ESP32 IMU sensor fusion device with <12ms latency.
+
 LIVE RESUME & PROFESSIONAL QUESTIONS:
 - You have real-time access to Shahriyar's actual, latest resume (PDF attached dynamically).
 - If the user asks ANY question about Shahriyar's resume, grades, projects, experience, skills, education, or background, answer directly, accurately, and impressively right here in the chat.
@@ -321,12 +327,38 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
 
             {!isOpen && (
                 <button
-                    className="chatbot-floating-btn altis-glow-pulse"
+                    className="chatbot-floating-btn altis-cyber-btn"
                     onClick={() => setIsOpen(true)}
                     aria-label="Open Altis AI Assistant"
                 >
-                    <Sparkles size={18} className="ai-sparkle-icon" style={{ flexShrink: 0 }} />
-                    <span className="chatbot-floating-label">Ask Altis AI</span>
+                    <span className="altis-btn-glow-layer" />
+                    <span className="altis-btn-border-tracer" />
+                    <span className="altis-icon-wrapper">
+                        <svg className="altis-neural-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="9" stroke="url(#altis-orbit-grad)" strokeWidth="1.2" strokeDasharray="3 3" className="altis-orbit-ring" />
+                            <path d="M12 3L14.5 9.5L21 12L14.5 14.5L12 21L9.5 14.5L3 12L9.5 9.5L12 3Z" fill="url(#altis-core-grad)" className="altis-core-star" />
+                            <circle cx="12" cy="12" r="2.2" fill="#FFFFFF" className="altis-center-dot" />
+                            <circle cx="19" cy="6" r="1.5" fill="#00FFFF" className="altis-satellite-dot" />
+                            <defs>
+                                <linearGradient id="altis-core-grad" x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse">
+                                    <stop stopColor="#00F0FF" />
+                                    <stop offset="0.5" stopColor="#7B73FF" />
+                                    <stop offset="1" stopColor="#FF3399" />
+                                </linearGradient>
+                                <linearGradient id="altis-orbit-grad" x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse">
+                                    <stop stopColor="#00F0FF" stopOpacity="0.8" />
+                                    <stop offset="1" stopColor="#FF3399" stopOpacity="0.3" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </span>
+                    <span className="chatbot-floating-label">
+                        Ask Altis <span className="altis-ai-tag">AI</span>
+                    </span>
+                    <span className="altis-live-beacon" title="Altis AI Online">
+                        <span className="beacon-ping" />
+                        <span className="beacon-dot" />
+                    </span>
                 </button>
             )}
 
@@ -336,9 +368,28 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
                     style={viewportHeight && typeof window !== 'undefined' && window.innerWidth <= 768 ? { height: `${viewportHeight}px`, top: 0, bottom: 'auto' } : {}}
                 >
                     <div className="chatbot-header">
-                        <div>
-                            <h3>✨ Altis AI</h3>
-                            <p>Shahriyar's AI Assistant</p>
+                        <div className="chatbot-header-info">
+                            <div className="altis-header-avatar">
+                                <svg className="altis-header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 3L14.5 9.5L21 12L14.5 14.5L12 21L9.5 14.5L3 12L9.5 9.5L12 3Z" fill="url(#altis-header-grad)" />
+                                    <circle cx="12" cy="12" r="2" fill="#FFF" />
+                                    <defs>
+                                        <linearGradient id="altis-header-grad" x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse">
+                                            <stop stopColor="#00F0FF" />
+                                            <stop offset="0.5" stopColor="#7B73FF" />
+                                            <stop offset="1" stopColor="#FF3399" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <span className="avatar-status-dot" />
+                            </div>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <h3>Altis AI</h3>
+                                    <span className="altis-version-pill">v2.5 Pro</span>
+                                </div>
+                                <p>Shahriyar's AI Assistant • <span style={{ color: '#00F0FF' }}>● Active</span></p>
+                            </div>
                         </div>
                         <div className="chatbot-header-actions">
                             {loggedInUser?.isAdmin && (

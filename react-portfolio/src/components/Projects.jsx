@@ -11,6 +11,28 @@ const Projects = () => {
                     <div className="project-card liquid-glass liquid-glass-continuous reveal" style={{ '--shimmer-delay': '0s' }}>
                         <div className="project-img">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M4.5 12c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zm0 0v1.5m0-1.5V10.5m-9 1.5v1.5m0-1.5V10.5" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.75 17L12 19.25 14.25 17M14.25 7L12 4.75 9.75 7" />
+                            </svg>
+                        </div>
+                        <div className="project-body">
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                <h3>Project LOOP</h3>
+                                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '3px 9px', borderRadius: '12px', background: 'rgba(0, 212, 255, 0.15)', color: '#00D4FF', border: '1px solid rgba(0, 212, 255, 0.3)', fontWeight: 600 }}>Featured AI</span>
+                            </div>
+                            <p>Enterprise multi-tenant customer feedback intelligence platform that ingests scattered feedback across tickets, reviews, and surveys. Features Google Gemini auto-classification, theme clustering with spike alerts (+35%), and Grounded RAG Q&A with strict RBAC tenant isolation.</p>
+                            <div className="project-techs">
+                                <span>Next.js 14</span><span>TypeScript</span><span>Google Gemini</span><span>Prisma ORM</span><span>Grounded RAG</span><span>Tailwind</span><span>RBAC</span><span>Live App</span>
+                            </div>
+                            <div className="project-links">
+                                <a href="https://loop-ten-vert.vercel.app/login" target="_blank" rel="noopener noreferrer">Live Demo ↗</a>
+                                <a href="https://github.com/DeathSHMASHER/LOOP" target="_blank" rel="noopener noreferrer">GitHub →</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="project-card liquid-glass liquid-glass-continuous reveal reveal-delay-1" style={{ '--shimmer-delay': '0.5s' }}>
+                        <div className="project-img">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
                             </svg>
                         </div>

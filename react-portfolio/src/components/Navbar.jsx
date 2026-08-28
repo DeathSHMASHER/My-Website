@@ -143,7 +143,7 @@ const Navbar = ({ loggedInUser, onLogout, onLoginClick }) => {
                     ))}
                     <li>
                         <button
-                            className="use-ai-btn"
+                            className="use-ai-btn altis-nav-cyber-btn"
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -152,7 +152,22 @@ const Navbar = ({ loggedInUser, onLogout, onLoginClick }) => {
                             }}
                             onMouseEnter={() => setHoveredSection('use-ai')}
                         >
-                            Chat with Altis ↗
+                            <span className="altis-nav-sparkle">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="8" stroke="rgba(0, 240, 255, 0.6)" strokeWidth="1" strokeDasharray="2 2" className="nav-orbit-spin" />
+                                    <path d="M12 3L14.2 9.8L21 12L14.2 14.2L12 21L9.8 14.2L3 12L9.8 9.8L12 3Z" fill="url(#ai-nav-grad)" />
+                                    <circle cx="12" cy="12" r="1.8" fill="#FFF" />
+                                    <defs>
+                                        <linearGradient id="ai-nav-grad" x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse">
+                                            <stop stopColor="#00F0FF" />
+                                            <stop offset="0.5" stopColor="#7B73FF" />
+                                            <stop offset="1" stopColor="#FF3399" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </span>
+                            <span className="altis-nav-label">Ask Altis <span className="altis-highlight">AI</span></span>
+                            <span className="altis-nav-dot" />
                         </button>
                     </li>
                 </ul>

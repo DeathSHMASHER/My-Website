@@ -639,11 +639,16 @@ SHAHRIYAR TAUFIK'S OFFICIAL & VERIFIED RESUME KNOWLEDGE BASE:
      - Architected responsive web pages using React.js, HTML5, CSS3, enhancing page rendering speed by 15%.
      - Developed reusable component libraries and modular UI patterns.
 - Key Technical Projects:
-  1. Neuro-Scribe: Brain-Computer Interface (BCI) (Python, ML, Signal Processing | Jan 2025 – Jan 2026)
+  1. Project LOOP — AI Customer-Feedback Intelligence Platform (Next.js 14, TypeScript, Google Gemini, Prisma, RAG, Tailwind | Live: https://loop-ten-vert.vercel.app/login | Repo: github.com/DeathSHMASHER/LOOP)
+     - Enterprise multi-tenant SaaS application that ingests scattered feedback across tickets, reviews, and surveys.
+     - Features Google Gemini structured sentiment classification, theme clustering with spike detection (+35% alerts), Grounded RAG Q&A ("Ask LOOP AI"), and strict RBAC isolation.
+  2. Jigyasa Science Academy (JavaScript, HTML/CSS, Student Portal | Live: jigyassa.netlify.app | Repo: github.com/DeathSHMASHER/Coching)
+     - Comprehensive academic tuition & coaching platform featuring student dashboards, rating dials, attendance tracking, and doubt resolution desk.
+  3. Neuro-Scribe: Brain-Computer Interface (BCI) (Python, ML, Signal Processing | Jan 2025 – Jan 2026)
      - Built real-time signal decoding pipeline translating EEG telemetry into text commands, achieving 91.5% classification accuracy and 35% noise reduction.
-  2. Wireless Air Mouse & Radar System (ESP32, MPU6050, Embedded C, Python | Jan 2026 – Mar 2026)
+  4. Wireless Air Mouse & Radar System (ESP32, MPU6050, Embedded C, Python | Jan 2026 – Mar 2026)
      - Engineered gesture-driven input device utilizing IMU sensor fusion on ESP32 microcontroller with under 12ms response latency.
-  3. Personal Developer Platform (React.js, Vite, Tailwind CSS, Netlify | Apr 2026 – May 2026)
+  5. Personal Developer Platform (React.js, Vite, Tailwind CSS, Netlify | Apr 2026 – May 2026)
      - Live portfolio platform (shahriyartaufik.in) with custom DNS, SSL security, and 98+ Google Lighthouse score.
 - Technical Skills:
   * Core Competencies: Full-Stack Web Development, IoT Embedded Systems, AI-Driven Solutions, Data Structures & Algorithms, OOPs.
