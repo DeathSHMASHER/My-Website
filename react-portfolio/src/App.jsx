@@ -11,8 +11,8 @@ import Certifications from './components/Certifications';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import CursorGlow from './components/CursorGlow';
-import Global3DBackground from './components/Global3DBackground';
 import MobileBackground from './components/MobileBackground';
+const Global3DBackground = React.lazy(() => import('./components/Global3DBackground'));
 import Chatbot from './components/Chatbot';
 import AuthModal from './components/AuthModal';
 import { API_URL } from './config';
@@ -87,7 +87,13 @@ function App() {
 
   return (
     <>
-      {isMobile ? <MobileBackground /> : <Global3DBackground />}
+      {isMobile ? (
+        <MobileBackground />
+      ) : (
+        <React.Suspense fallback={<MobileBackground />}>
+          <Global3DBackground />
+        </React.Suspense>
+      )}
       <CursorGlow />
 
       <Preloader />

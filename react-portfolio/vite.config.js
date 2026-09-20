@@ -19,6 +19,13 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         admin: resolve(__dirname, 'admin.html'),
       },
+      output: {
+        manualChunks: {
+          three: ['three', '@react-three/fiber', '@react-three/drei'],
+          vendor: ['react', 'react-dom', 'lucide-react'],
+        },
+      },
     },
+    chunkSizeWarningLimit: 1000,
   },
 })
