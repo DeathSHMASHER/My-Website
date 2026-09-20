@@ -37,7 +37,7 @@ const Hero = () => {
                 </p>
                 <div className="hero-btns" style={{ pointerEvents: 'auto' }}>
                     <a
-                        href="https://drive.google.com/file/d/1HhX534tO8exquYUH4rBA5l80MiG7tH1F/view?usp=sharing"
+                        href="https://drive.google.com/file/d/187WW4781PgCIR7DMkA_Wb4xzLqsIlx1c/view?usp=sharing"
                         target="_blank"
                         rel="noreferrer"
                         className="btn btn-primary"

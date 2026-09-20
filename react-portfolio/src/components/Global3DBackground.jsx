@@ -1,4 +1,4 @@
-import React, { useRef, Component } from 'react';
+import React, { useRef, useState, useEffect, Component } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { MeshTransmissionMaterial, Float, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
@@ -116,16 +116,47 @@ const LiquidGlassShape = () => {
 
 const Global3DBackground = () => {
     const isMobile = useIsMobile(768);
+    const [isPaused, setIsPaused] = useState(false);
+
+    useEffect(() => {
+        const handlePauseEvent = (e) => {
+            if (e && e.detail !== undefined) {
+                // Defer state update to avoid React cross-component render conflicts
+                setTimeout(() => {
+                    setIsPaused(!!e.detail.paused);
+                }, 0);
+            }
+        };
+        window.addEventListener('set3DBackgroundPaused', handlePauseEvent);
+        return () => window.removeEventListener('set3DBackgroundPaused', handlePauseEvent);
+    }, []);
 
     if (isMobile) return null;
 
     return (
         <CanvasErrorBoundary>
-            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none', opacity: 1 }}>
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none', opacity: isPaused ? 0.4 : 1, transition: 'opacity 0.4s ease' }}>
                 <Canvas
                     camera={{ position: [0, 0, 8], fov: 45 }}
                     eventSource={typeof document !== 'undefined' ? document.body : undefined}
-                    gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+                    gl={{
+                        antialias: true,
+                        alpha: true,
+                        powerPreference: 'high-performance',
+                        preserveDrawingBuffer: false,
+                        failIfMajorPerformanceCaveat: false
+                    }}
+                    onCreated={({ gl }) => {
+                        const canvasEl = gl.domElement;
+                        canvasEl.addEventListener('webglcontextlost', (e) => {
+                            e.preventDefault();
+                            console.warn('WebGL context lost detected, auto-restoring...');
+                        }, false);
+                        canvasEl.addEventListener('webglcontextrestored', () => {
+                            console.log('WebGL context restored successfully');
+                        }, false);
+                    }}
+                    frameloop={isPaused ? 'never' : 'always'}
                 >
                     {/* Self-contained studio lighting with no external HTTP dependencies */}
                     <ambientLight intensity={1.2} />

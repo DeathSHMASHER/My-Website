@@ -1,4 +1,13 @@
 {
+  "name": "portfolio-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix react-portfolio run dev",
+    "build": "npm --prefix react-portfolio run build",
+    "server": "npm --prefix react-portfolio/server start",
+    "start": "npm --prefix react-portfolio run dev"
+  },
   "dependencies": {
     "serverless-http": "^4.0.0"
   }

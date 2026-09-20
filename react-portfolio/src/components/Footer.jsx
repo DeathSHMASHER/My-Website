@@ -32,7 +32,7 @@ const Footer = () => {
                     </div>
                     <div className="footer-col">
                         <h4>Resources</h4>
-                        <a href="https://drive.google.com/file/d/1HhX534tO8exquYUH4rBA5l80MiG7tH1F/view?usp=sharing" target="_blank" rel="noopener noreferrer">Resume</a>
+                        <a href="https://drive.google.com/file/d/187WW4781PgCIR7DMkA_Wb4xzLqsIlx1c/view?usp=sharing" target="_blank" rel="noopener noreferrer">Resume</a>
                         <a href="https://github.com/DeathSHMASHER" target="_blank" rel="noopener noreferrer">GitHub</a>
                         <a href="https://www.linkedin.com/in/shahriyar-taufik-19662b287/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
                     </div>

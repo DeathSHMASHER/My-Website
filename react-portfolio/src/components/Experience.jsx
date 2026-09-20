@@ -10,10 +10,13 @@ const Experience = () => {
                     <div className="tl-item reveal">
                         <div className="tl-dot"></div>
                         <div className="tl-content liquid-glass liquid-glass-continuous" style={{ '--shimmer-delay': '0s' }}>
-                            <h3>Full Stack Developer</h3>
-                            <div className="tl-date">April 2025 - Present</div>
-                            <div className="tl-place">Alpha Codes Inc.</div>
-                            <p>Contributing to both frontend and backend development of scalable web platforms. Working extensively with React and Node.js for creating templates for e-commerce websites.</p>
+                            <h3>Agentic AI Chatbot Developer</h3>
+                            <div className="tl-date">2026</div>
+                            <div className="tl-place">AICourseHelper &mdash; Agentic AI Learning Assistant</div>
+                            <p>Architected an agentic AI chatbot that teaches specific academic courses through interactive, course-focused dialogues and guided learning support. Designed around LLM-driven agentic workflows to interpret queries, provide contextual explanations, and guide step-by-step learning end-to-end.</p>
+                            <div style={{ marginTop: '12px', fontSize: '0.85rem', color: 'var(--text3)' }}>
+                                <span style={{ color: 'var(--accent2)' }}>Skills:</span> Agentic Workflows &middot; Prompt Architecture &middot; LLM APIs &middot; Full-Stack AI Logic
+                            </div>
                         </div>
                     </div>
 
@@ -38,7 +41,20 @@ const Experience = () => {
 
                     <div className="tl-item reveal reveal-delay-2">
                         <div className="tl-dot"></div>
-                        <div className="tl-content liquid-glass liquid-glass-continuous" style={{ '--shimmer-delay': '2s' }}>
+                        <div className="tl-content liquid-glass liquid-glass-continuous" style={{ '--shimmer-delay': '1.8s' }}>
+                            <h3>Front-End Development Intern</h3>
+                            <div className="tl-date">Aug 2025 - Sep 2025</div>
+                            <div className="tl-place">Cognifyz Technologies &middot; Remote</div>
+                            <p>Developed responsive, modern web interfaces using React.js, HTML5, and CSS3, accelerating page rendering speed by 15%. Engineered reusable component libraries and modular UI design patterns for structured enterprise development.</p>
+                            <div style={{ marginTop: '12px', fontSize: '0.85rem', color: 'var(--text3)' }}>
+                                <span style={{ color: 'var(--accent2)' }}>Skills:</span> React.js &middot; Component Architecture &middot; Performance Optimization &middot; UI Engineering
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="tl-item reveal reveal-delay-3">
+                        <div className="tl-dot"></div>
+                        <div className="tl-content liquid-glass liquid-glass-continuous" style={{ '--shimmer-delay': '2.5s' }}>
                             <h3>AI & ML Intern (Supported by Google)</h3>
                             <div className="tl-date">Jul 2025 - Sep 2025</div>
                             <div className="tl-place">All India Council for Technical Education (AICTE)</div>
