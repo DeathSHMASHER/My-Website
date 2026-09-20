@@ -943,6 +943,8 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
             }, 100);
         };
 
+        const useGemmaTier = !loggedInUser && currentGuestTurns > 5;
+
         try {
             // Format history for backend API (skip initial greeting and filter out empty text parts)
             const historyForAPI = chatHistory
@@ -956,8 +958,6 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
                 setIsLoading(false);
                 return;
             }
-
-            const useGemmaTier = !loggedInUser && currentGuestTurns > 5;
 
             // Fast SSE streaming endpoint
             const response = await fetch(`${API_URL}/chat/stream`, {
