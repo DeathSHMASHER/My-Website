@@ -1329,20 +1329,30 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
                                 </button>
                             )}
                             <button
-                                className="chatbot-header-tool-btn maximize-tool-btn"
+                                className="chatbot-action-btn maximize-tool-btn"
                                 onClick={handleToggleMaximize}
                                 title={isMaximized ? "Restore size" : "Expand window"}
                                 aria-label="Toggle maximize"
                             >
-                                {isMaximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                                {isMaximized ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
                             </button>
                             {loggedInUser?.isAdmin && (
-                                <button className="admin-btn" onClick={() => window.open('/admin.html', '_blank')} title="Admin Dashboard">
-                                    <Shield size={16} />
+                                <button
+                                    className="chatbot-action-btn admin-tool-btn admin-btn"
+                                    onClick={() => window.open('/admin.html', '_blank')}
+                                    title="Admin Dashboard"
+                                    aria-label="Admin Dashboard"
+                                >
+                                    <Shield size={15} />
                                 </button>
                             )}
-                            <button className="chatbot-close" onClick={handleClose} title="Close chat">
-                                <X size={18} />
+                            <button
+                                className="chatbot-action-btn close-tool-btn chatbot-close"
+                                onClick={handleClose}
+                                title="Close chat"
+                                aria-label="Close chat"
+                            >
+                                <X size={16} />
                             </button>
                         </div>
                     </div>
