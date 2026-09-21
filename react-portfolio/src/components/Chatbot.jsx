@@ -460,6 +460,7 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
     }, [loggedInUser]);
 
     const handleResetChat = () => {
+        if (!loggedInUser) return; // Guests cannot reset chat to bypass limits
         if (activeAbortControllerRef.current) {
             try { activeAbortControllerRef.current.abort(); } catch {}
             activeAbortControllerRef.current = null;
@@ -469,16 +470,6 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
         displayedTextRef.current = '';
         setIsLoading(false);
         setInputValue('');
-        setShowSlowTierNotice(false);
-        setShowPrankNotice(false);
-        setShowLoginPrompt(false);
-        setVerifyingCredentials(false);
-        setPrankModal(false);
-        setGuestMessageCount(0);
-        try {
-            sessionStorage.removeItem('altis_guest_msg_count');
-            sessionStorage.removeItem('altis_guest_name');
-        } catch (e) {}
         setMessages([
             { role: 'assistant', content: getInitialGreeting(loggedInUser) }
         ]);
@@ -1406,14 +1397,16 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
                                     <span>3D Background: {bg3dPaused ? 'Paused' : 'Active'}</span>
                                 </button>
                             )}
-                            <button
-                                className="chatbot-action-btn refresh-tool-btn"
-                                onClick={handleResetChat}
-                                title="New chat / Refresh"
-                                aria-label="New chat / Refresh"
-                            >
-                                <RotateCcw size={14} />
-                            </button>
+                            {loggedInUser && (
+                                <button
+                                    className="chatbot-action-btn refresh-tool-btn"
+                                    onClick={handleResetChat}
+                                    title="New chat / Refresh"
+                                    aria-label="New chat / Refresh"
+                                >
+                                    <RotateCcw size={14} />
+                                </button>
+                            )}
                             <button
                                 className="chatbot-action-btn maximize-tool-btn"
                                 onClick={handleToggleMaximize}
@@ -1586,13 +1579,13 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
                 </div>
             )}
 
-            {/* Hilarious Prank Reveal Modal */}
+            {/* Hilarious Prank Modal */}
             {prankModal && (
                 <div className="altis-prank-toast-overlay" onClick={() => setPrankModal(false)}>
                     <div className="altis-prank-toast-card" onClick={(e) => e.stopPropagation()}>
                         <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>🛰️😄</div>
                         <h3 style={{ color: '#00F0FF', margin: '0 0 10px 0', fontSize: '1.2rem', letterSpacing: '0.5px' }}>
-                            PRANK REVEAL!
+                            IT WAS A PRANK! 😄
                         </h3>
                         <p style={{ color: '#e0e0e0', fontSize: '0.86rem', lineHeight: 1.55, margin: '0 0 12px 0' }}>
                             Triangulating IP address... Latitude &amp; Longitude locked... Generating compute recovery fee ($14.82 USD) for your ISP...
