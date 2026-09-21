@@ -971,6 +971,55 @@ function stripInternalMetaLeaks(text) {
         .replace(/\n\s*\n\s*\n/g, '\n\n');
 }
 
+function formatRelativeTime(date) {
+    if (!date) return 'recently';
+    const diffMs = Date.now() - new Date(date).getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 60) return 'just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+}
+
+function generateUserChatBrief(userText, aiResponse) {
+    const text = (userText || '').trim();
+    const lower = text.toLowerCase();
+
+    // 1. Hiring / Company / Recruiter lead
+    const hiringRegex = /(?:hire|hiring|company|job|offer|role|work for|join us|join our|position|ctc|salary|package|team|recruit|headhunt|employment|opportunity|referral|opening|interview)/i;
+    if (hiringRegex.test(lower)) {
+        return `🚨 [Hiring/Company Opportunity] User expressed interest in hiring Shahriyar or having him join their company ("${text.slice(0, 130)}")`;
+    }
+
+    // 2. Hostile / Rude / Boundary testing
+    const hostileRegex = /(?:stupid|idiot|dumb|useless|trash|clown|suck|hate|shut up|fuck|bitch|bastard|retard|dick|piss|loser|garbage|scam|terrible|worthless)/i;
+    if (hostileRegex.test(lower)) {
+        return `⚠️ [Hostile / Disrespectful] Tested limits or spoke negatively to Altis ("${text.slice(0, 110)}"); Altis shut them down with a roast.`;
+    }
+
+    // 3. Technical / Project question
+    const techRegex = /(?:project|react|github|code|architecture|model|gemma|gemini|api|stack|backend|database|portfolio|neuro-scribe|air mouse|loop|mern|node|aws|docker|python)/i;
+    if (techRegex.test(lower)) {
+        return `💻 [Tech & Projects] Asked technical/project questions regarding "${text.slice(0, 110)}"`;
+    }
+
+    // 4. Contact / Phone request
+    if (/(?:phone|contact|number|call|reach|whatsapp|mobile)/i.test(lower)) {
+        return `📞 [Contact Request] Inquired about Shahriyar's direct phone number/contact info ("${text.slice(0, 110)}")`;
+    }
+
+    // 5. Praise / Appreciation
+    if (/(?:great|awesome|cool|impressive|love|nice|amazing|talent|good job|congrats|super)/i.test(lower)) {
+        return `⭐ [Positive Feedback] Praised the site/projects: "${text.slice(0, 110)}"`;
+    }
+
+    // Default conversational summary
+    return `💬 [General Inquiry] Discussed: "${text.slice(0, 130)}"`;
+}
+
 // Helper to construct fast, rich prompt context without blocking external embedding calls
 async function prepareChatContext({ historyForAPI, SYSTEM_PROMPT, user, guestName, useGemmaTier, guestMessageCount }) {
     const currentDate = new Date();
@@ -1047,44 +1096,105 @@ SPECIAL CALENDAR EVENT:
     const altisMemoriesSnippet = formatAltisMemoriesSnippet(memoriesToFormat);
 
     let memoryContext = '';
-    if (user && (user.id || user._id || user.email)) {
+    if (isShahriyar) {
+        try {
+            // ADMIN / CREATOR DOSSIER: Fetch recent registered external users who chatted
+            const recentUsers = await User.find({
+                email: { $nin: ADMIN_EMAILS }
+            })
+            .sort({ lastInteractionAt: -1, updatedAt: -1 })
+            .limit(15)
+            .lean();
+
+            const dossierEntries = [];
+            if (recentUsers && recentUsers.length > 0) {
+                recentUsers.forEach(u => {
+                    const uName = u.name || u.username || 'Visitor';
+                    const uEmail = u.email || '';
+                    const timeStr = u.lastInteractionAt ? formatRelativeTime(u.lastInteractionAt) : (u.updatedAt ? formatRelativeTime(u.updatedAt) : 'recently');
+                    const summary = u.lastChatSummary || (u.lastUserQuery ? `User asked: "${u.lastUserQuery}"` : 'User browsed site');
+                    const lastQuery = u.lastUserQuery ? `\n    * Last Message: "${u.lastUserQuery}"` : '';
+                    const lastAi = u.lastAiResponse ? `\n    * Altis Replied: "${u.lastAiResponse.slice(0, 160)}..."` : '';
+
+                    dossierEntries.push(`  • User: ${uName} (${uEmail} | Active: ${timeStr})\n    * Brief: ${summary}${lastQuery}${lastAi}`);
+                });
+            }
+
+            memoryContext = `
+CONFIDENTIAL VISITOR & USER INTELLIGENCE BRIEFING (FOR SHAHRIYAR ONLY):
+- You are in private, direct session with your CREATOR and ADMIN: Shahriyar Taufik.
+- YOU HAVE FULL ACCESS TO SYSTEM USER CONVERSATION INTELLIGENCE.
+- When Shahriyar asks:
+  * "how's everything going?"
+  * "what users interact with you today?" or "who interacted with you?"
+  * "what did users say?" or "any interesting chats/leads today?"
+  * "what did [User Name, e.g. Rajendra] say?"
+  * or asks about visitors/traffic:
+  1. Greet him warmly as Boss / Chief / Architect with sharp, executive loyalty!
+  2. Deliver an executive summary of user interactions by their exact name (e.g. Rajendra, etc.).
+  3. Proactively highlight high-value items:
+     - 🚨 Hiring / job leads / company offers (e.g., "Boss, Rajendra hopped on earlier and mentioned he wants you in his company for a lead AI role!").
+     - 💻 Technical inquiries / project interest (visitors checking LOOP, Neuro-Scribe, tech stack).
+     - ⚠️ Any rude/hostile boundary-testers who were shut down or roasted.
+  4. If no external users have chatted yet today or in recent records, reassure him with swagger that the neural gateway is primed, running at 100% uptime, and awaiting the next visitor!
+
+LIVE USER CONVERSATION INTELLIGENCE LOG:
+${dossierEntries.length > 0 ? dossierEntries.join('\n\n') : '  (No external user chats recorded in current database window. Neural circuits awaiting incoming visitors.)'}
+`;
+        } catch (adminErr) {
+            console.warn('Admin dossier fetch notice in Netlify:', adminErr.message);
+        }
+    } else if (user && (user.id || user._id || user.email)) {
         try {
             let uId = user.id || user._id;
-            if (!uId && user.email) {
-                const foundUser = await User.findOne({ email: user.email.toLowerCase() });
+            let foundUser = null;
+            if (uId && mongoose.Types.ObjectId.isValid(uId)) {
+                foundUser = await User.findById(uId).lean();
+            } else if (user.email) {
+                foundUser = await User.findOne({ email: user.email.toLowerCase() }).lean();
                 if (foundUser) uId = foundUser._id;
             }
+
+            const pastExchanges = [];
             if (uId && mongoose.Types.ObjectId.isValid(uId)) {
-                const pastLogs = await ChatLog.find({ userId: uId }).sort({ createdAt: -1 }).limit(10);
+                const pastLogs = await ChatLog.find({ userId: uId }).sort({ createdAt: -1 }).limit(6);
                 if (pastLogs && pastLogs.length > 0) {
-                    const pastExchanges = [];
                     pastLogs.forEach(log => {
                         (log.messages || []).forEach(m => {
                             if (m.content && m.content.trim().length > 3) {
                                 pastExchanges.push({
                                     role: m.role,
-                                    content: m.content.trim().slice(0, 300)
+                                    content: m.content.trim().slice(0, 260)
                                 });
                             }
                         });
                     });
-
-                    if (pastExchanges.length > 0) {
-                        const relevantMemories = pastExchanges.slice(-4);
-                        memoryContext = `
-USER RECOGNITION & PERSONALIZED CONTEXT (LOGGED-IN USER: "${userName}"):
-- You recognize this logged-in user: "${userName}".
-- Relevant past topics and context from their previous conversations:
-${relevantMemories.map(m => `  * [${m.role === 'user' ? userName : 'Altis'}]: ${m.content}`).join('\n')}
-- Personalization Directive:
-  * Address the user directly as "${userName}".
-  * Reference their prior questions or topics naturally when relevant to provide smooth conversational continuity.
-  * In banter or roasts, you may directly address them by name "${userName}".`;
-                    }
                 }
             }
+
+            const userBrief = foundUser?.lastChatSummary ? `\n- What ${userName} previously discussed with Altis: "${foundUser.lastChatSummary}"` : '';
+            const recentContext = pastExchanges.length > 0
+                ? `\n- Recent conversation turns with ${userName}:\n` + pastExchanges.slice(-6).map(m => `  * [${m.role === 'user' ? userName : 'Altis'}]: ${m.content}`).join('\n')
+                : '';
+
+            memoryContext = `
+USER RECOGNITION & INDIVIDUAL CONTEXT (LOGGED-IN USER: "${userName}"):
+- You recognize this logged-in user: "${userName}".
+- Greet them warmly by name "${userName}". You remember them individually and remember what they said in previous chats!${userBrief}${recentContext}
+- Conversational Directive for ${userName}:
+  * Address them directly by name "${userName}".
+  * Reference their prior topics naturally if relevant to ensure seamless continuity.
+  * Banter wittily and answer questions about Shahriyar's skills, projects, and availability.
+
+STRICT CROSS-USER PRIVACY PROTOCOL (ABSOLUTE RULE):
+- This session belongs ONLY to ${userName}.
+- You must NEVER share, disclose, or leak anything that OTHER users, visitors, or people said to you!
+- If ${userName} asks what other users or visitors said to you (e.g. "what did other users say?", "who else talked to you?"):
+  * Wittily and politely decline: State that you adhere to strict zero-leak user privacy and confidential data isolation for all visitors, and only Admin (Shahriyar) has clearance for system telemetry.
+  * Redirect focus back to helping them with their questions!
+`;
         } catch (memErr) {
-            console.warn('Memory retrieval notice:', memErr.message);
+            console.warn('Memory retrieval notice in Netlify:', memErr.message);
         }
     } else {
         // Guest / Just Chat: No context tracking or forced user questioning required
@@ -1092,7 +1202,8 @@ ${relevantMemories.map(m => `  * [${m.role === 'user' ? userName : 'Altis'}]: ${
 GUEST / JUST CHAT CONVERSATION PROTOCOL:
 - The user is in quick guest chat mode ("Just Chat").
 - You do NOT need to ask for their name, save context, or persuade them to log in.
-- Simply answer their questions, banter with sharp wit, showcase Shahriyar's skills/projects, and roast them wittily according to the roast escalation scale if provoked!`;
+- Simply answer their questions, banter with sharp wit, showcase Shahriyar's skills/projects, and roast them wittily according to the roast escalation scale if provoked!
+- STRICT PRIVACY: NEVER share what other users or visitors have discussed. Treat all other users' chats as strictly confidential.`;
     }
 
     // Calculate exact guest message count
@@ -1233,7 +1344,7 @@ WEBSITE SLIDE PROJECTION & BACKGROUND REDIRECTION PROTOCOL:
     return { systemPrompt: finalPrompt, sanitizedHistory, isShahriyar, lastUserText, userName, userEmail };
 }
 
-// Helper to handle background side-effects (Email lead alerts, living memory commits)
+// Helper to handle background side-effects (Email lead alerts, living memory commits, user briefing updates, auto-chat persistence)
 async function handleChatCompletionSideEffects({ fullAiText, lastUserText, user, guestName, isShahriyar, userName, userEmail }) {
     try {
         const leadData = extractLeadDispatchTag(fullAiText);
@@ -1261,6 +1372,59 @@ async function handleChatCompletionSideEffects({ fullAiText, lastUserText, user,
                     authorEmail: userEmail || 'shahriyartaufik@gmail.com',
                     authorName: userName || 'Shahriyar Taufik'
                 });
+            }
+        } else if (user && (user.id || user._id || userEmail)) {
+            // External registered user: Update dossier brief and auto-persist to ChatLog
+            try {
+                let uId = user.id || user._id;
+                let userDoc = null;
+                if (uId && mongoose.Types.ObjectId.isValid(uId)) {
+                    userDoc = await User.findById(uId);
+                } else if (userEmail) {
+                    userDoc = await User.findOne({ email: userEmail.toLowerCase() });
+                }
+
+                if (userDoc) {
+                    const brief = generateUserChatBrief(lastUserText, fullAiText);
+                    let rollingSummary = brief;
+                    if (userDoc.lastChatSummary && !userDoc.lastChatSummary.includes(lastUserText.slice(0, 25))) {
+                        const previousBriefs = userDoc.lastChatSummary.split(' | ');
+                        rollingSummary = [brief, ...previousBriefs.slice(0, 1)].join(' | ');
+                    }
+
+                    await User.findByIdAndUpdate(userDoc._id, {
+                        lastChatSummary: rollingSummary,
+                        lastUserQuery: (lastUserText || '').slice(0, 500),
+                        lastAiResponse: (fullAiText || '').slice(0, 500),
+                        lastInteractionAt: new Date()
+                    });
+
+                    // Real-time ChatLog auto-persistence so chat logs are never lost
+                    const recentLog = await ChatLog.findOne({
+                        userId: userDoc._id,
+                        createdAt: { $gte: new Date(Date.now() - 30 * 60 * 1000) }
+                    }).sort({ createdAt: -1 });
+
+                    if (recentLog) {
+                        recentLog.messages.push(
+                            { role: 'user', content: String(lastUserText || '').slice(0, 5000), timestamp: new Date() },
+                            { role: 'assistant', content: String(fullAiText || '').slice(0, 5000), timestamp: new Date() }
+                        );
+                        await recentLog.save();
+                    } else {
+                        const newLog = new ChatLog({
+                            userId: userDoc._id,
+                            messages: [
+                                { role: 'user', content: String(lastUserText || '').slice(0, 5000), timestamp: new Date() },
+                                { role: 'assistant', content: String(fullAiText || '').slice(0, 5000), timestamp: new Date() }
+                            ],
+                            sessionStart: new Date()
+                        });
+                        await newLog.save();
+                    }
+                }
+            } catch (saveErr) {
+                console.warn('Auto user memory/log save notice in Netlify:', saveErr.message);
             }
         }
     } catch (err) {
@@ -1594,40 +1758,16 @@ router.post('/chat/generate', chatLimiter, async (req, res) => {
         }
         finalResponse.modelUsed = usedModel;
 
-        // Check for Recruiter Lead info to dispatch alert email
-        const leadData = extractLeadDispatchTag(fullAiText);
-        if (leadData) {
-            dispatchLeadAlertEmail(leadData);
-        }
-
-        // Asynchronous Living Memory commitment when Creator / Admin communicates
-        if (isShahriyar) {
-            (async () => {
-                try {
-                    const tags = extractMemoryCommitTags(fullAiText);
-                    for (const tag of tags) {
-                        await commitAltisMemory({
-                            content: tag.content,
-                            category: tag.category,
-                            rawUserMessage: lastUserText,
-                            authorEmail: userEmail || 'shahriyartaufik@gmail.com',
-                            authorName: userName || 'Shahriyar Taufik'
-                        });
-                    }
-                    const heuristic = extractHeuristicMemory(lastUserText);
-                    if (heuristic) {
-                        await commitAltisMemory({
-                            content: heuristic.content,
-                            category: heuristic.category,
-                            rawUserMessage: lastUserText,
-                            authorEmail: userEmail || 'shahriyartaufik@gmail.com',
-                            authorName: userName || 'Shahriyar Taufik'
-                        });
-                    }
-                } catch (memErr) {
-                    console.warn('Memory commit background notice in Netlify:', memErr.message);
-                }
-            })();
+        if (fullAiText && fullAiText.trim()) {
+            await handleChatCompletionSideEffects({
+                fullAiText,
+                lastUserText,
+                user,
+                guestName,
+                isShahriyar,
+                userName,
+                userEmail
+            });
         }
 
         res.json(finalResponse);

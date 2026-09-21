@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
     resetToken: { type: String, default: null },
     resetTokenExpiry: { type: Date, default: null },
     lastLogin: { type: Date, default: null },
+    lastChatSummary: { type: String, default: '' },
+    lastUserQuery: { type: String, default: '' },
+    lastAiResponse: { type: String, default: '' },
+    lastInteractionAt: { type: Date, default: null },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

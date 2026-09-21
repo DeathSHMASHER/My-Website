@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, User, Bot, Sparkles, Shield, Maximize2, Minimize2 } from 'lucide-react';
+import { X, Send, User, Bot, Sparkles, Shield, Maximize2, Minimize2, RotateCcw } from 'lucide-react';
 import { API_URL } from '../config';
 
 const SYSTEM_PROMPT = `You are Altis, the exclusive, witty, fiercely loyal, and highly intelligent AI assistant for Shahriyar Taufik's portfolio website.
@@ -235,7 +235,7 @@ const renderFormattedMessage = (content) => {
 };
 
 const getInitialGreeting = (user) => {
-    const isShahriyar = user?.name?.toLowerCase().includes('shahriyar') || user?.email?.toLowerCase().includes('shahriyar');
+    const isShahriyar = user?.isAdmin || user?.name?.toLowerCase().includes('shahriyar') || user?.email?.toLowerCase().includes('shahriyar');
     const today = new Date();
     const isBday = (today.getMonth() === 8 && today.getDate() === 14); // September 14
 
@@ -244,6 +244,13 @@ const getInitialGreeting = (user) => {
             return "🎂🎉 HAPPY BIRTHDAY, SHAHRIYAR! 👑 The creator, the architect, the legend himself! Wishing you the happiest birthday, Boss! How can Altis serve you today?";
         }
         return "Greetings Boss! 🫡 Shahriyar himself in the chat! How can Altis assist the architect today?";
+    }
+    if (user && user.name) {
+        const firstName = user.name.trim().split(' ')[0];
+        if (isBday) {
+            return `Welcome back, ${firstName}! Great to see you again. Fun fact: today is actually Shahriyar's birthday! 🎂 What can I do for you today?`;
+        }
+        return `Welcome back, ${firstName}! ⚡ Great to have you back in the console. How can I help you today?`;
     }
     if (isBday) {
         return "Hi there! I'm Altis, Shahriyar's AI assistant. Fun fact: today is actually Shahriyar's birthday! 🎂 How can I help you today?";
@@ -397,14 +404,85 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
         };
     }, []);
 
-    // Update greeting if user logs in while chat has just started
+    // Track previous user to detect login / logout transitions
+    const prevUserRef = useRef(loggedInUser);
+
     useEffect(() => {
-        if (loggedInUser && messages.length <= 1) {
+        const prevUser = prevUserRef.current;
+        const currentUser = loggedInUser;
+
+        // Case 1: USER LOGOUT (was logged in, now logged out)
+        if (prevUser && !currentUser) {
+            if (activeAbortControllerRef.current) {
+                try { activeAbortControllerRef.current.abort(); } catch {}
+                activeAbortControllerRef.current = null;
+            }
+            stopWordTicker();
+            wordQueueRef.current = [];
+            displayedTextRef.current = '';
+            setIsLoading(false);
+            setInputValue('');
+            setShowSlowTierNotice(false);
+            setShowPrankNotice(false);
+            setShowLoginPrompt(false);
+            setVerifyingCredentials(false);
+            setPrankModal(false);
+            setGuestMessageCount(0);
+            try {
+                sessionStorage.removeItem('altis_guest_msg_count');
+                sessionStorage.removeItem('altis_guest_name');
+            } catch (e) {}
+
+            // Completely refresh chat as brand new
             setMessages([
-                { role: 'assistant', content: getInitialGreeting(loggedInUser) }
+                { role: 'assistant', content: getInitialGreeting(null) }
             ]);
+        } 
+        // Case 2: USER LOGIN (guest to logged-in user)
+        else if (!prevUser && currentUser) {
+            setMessages([
+                { role: 'assistant', content: getInitialGreeting(currentUser) }
+            ]);
+            setGuestMessageCount(0);
+            setShowSlowTierNotice(false);
+            setShowPrankNotice(false);
+            setShowLoginPrompt(false);
         }
+        // Case 3: SWITCHED USER ACCOUNT
+        else if (prevUser && currentUser && (prevUser.id !== currentUser.id || prevUser.email !== currentUser.email)) {
+            setMessages([
+                { role: 'assistant', content: getInitialGreeting(currentUser) }
+            ]);
+            setInputValue('');
+        }
+
+        prevUserRef.current = currentUser;
     }, [loggedInUser]);
+
+    const handleResetChat = () => {
+        if (activeAbortControllerRef.current) {
+            try { activeAbortControllerRef.current.abort(); } catch {}
+            activeAbortControllerRef.current = null;
+        }
+        stopWordTicker();
+        wordQueueRef.current = [];
+        displayedTextRef.current = '';
+        setIsLoading(false);
+        setInputValue('');
+        setShowSlowTierNotice(false);
+        setShowPrankNotice(false);
+        setShowLoginPrompt(false);
+        setVerifyingCredentials(false);
+        setPrankModal(false);
+        setGuestMessageCount(0);
+        try {
+            sessionStorage.removeItem('altis_guest_msg_count');
+            sessionStorage.removeItem('altis_guest_name');
+        } catch (e) {}
+        setMessages([
+            { role: 'assistant', content: getInitialGreeting(loggedInUser) }
+        ]);
+    };
 
     const computeFlipDelta = (sourceRectOverride = null) => {
         if (typeof window === 'undefined') {
@@ -1328,6 +1406,14 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
                                     <span>3D Background: {bg3dPaused ? 'Paused' : 'Active'}</span>
                                 </button>
                             )}
+                            <button
+                                className="chatbot-action-btn refresh-tool-btn"
+                                onClick={handleResetChat}
+                                title="New chat / Refresh"
+                                aria-label="New chat / Refresh"
+                            >
+                                <RotateCcw size={14} />
+                            </button>
                             <button
                                 className="chatbot-action-btn maximize-tool-btn"
                                 onClick={handleToggleMaximize}
