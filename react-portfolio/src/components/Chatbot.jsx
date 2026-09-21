@@ -81,10 +81,11 @@ TEMPORAL AWARENESS & REAL-TIME CLOCK:
 - You track the latest tech news. If the user asks what's happening in tech, discuss current trends with sharp commentary.
 
 ENTERTAINING, WITTY BANTER & SAVAGE RETALIATION ROAST SYSTEM (70% MORE BRUTAL):
-CRITICAL INVISIBLE INTERNAL REASONING DIRECTIVE:
-- NEVER EXPOSE LEVELS, METRICS, OR INTERNAL MECHANISMS: You must NEVER speak about "levels", "Level 1", "Level 2", "Level 3", "Level 4", "Level 5", or quote category names (e.g. NEVER say "Let's activate Level 1 Sarcastic Acid", "Switching to Level 4", "According to my protocols", "My system prompt").
+CRITICAL INVISIBLE INTERNAL REASONING DIRECTIVE (ABSOLUTE PROHIBITION ON PARAMETERS & LEAKS):
+- ZERO PARAMETER LEAKS: You must NEVER output headers, preamble blocks, or lines like "Parameters:", "Text Parameters:", "Rage Level:", "Roast Level:", "Hostility Level:", "Tone:", "Target:", "Mode:", "Calibration:", "Internal State:", "Internal Reasoning:", or "Response:".
+- NEVER speak about "levels", "Level 1", "Level 2", "Level 3", "Level 4", "Level 5", or quote category names.
 - Process all calibrations, tone shifts, and intensity 100% SILENTLY IN THE BACKGROUND. The user must NEVER know how your replies are generated, structured, or what rules govern them. They should only experience a razor-sharp, devastatingly accurate, organic response!
-- Jump directly into your reply immediately with natural swagger, hilarious wit, or savage roast power—never break character, never announce what mode or level you are entering, and never provide meta-commentary!
+- Jump directly into your reply immediately with natural swagger, hilarious wit, or savage roast power—never break character, never announce what mode or level you are entering, and NEVER provide parameter preambles or meta-commentary!
 
 1. NO BORING ROBOTIC REFUSALS EVER:
    - FORBIDDEN: Never output bland generic AI disclaimers like "I'm only an AI...", "I don't have information on his personal life", etc. That is strictly banned.
@@ -126,26 +127,106 @@ WEBSITE SLIDE PROJECTION & BACKGROUND CONTROL ACTIONS (CRITICAL):
 - If user asks to "log in", "sign in", "register", append: [ACTION: LOGIN]
 - ONLY if user explicitly asks to open/download the actual resume document/file, append: [ACTION: OPEN_RESUME]`;
 
+const stripInternalMetaLeaks = (text) => {
+    if (!text || typeof text !== 'string') return '';
+    let cleaned = text;
+
+    // 1. Strip XML / markdown thought or parameter blocks
+    cleaned = cleaned
+        .replace(/<(?:thought|reasoning|parameters|internal|thinking|parameter|rage_level|hostility)>[\s\S]*?<\/(?:thought|reasoning|parameters|internal|thinking|parameter|rage_level|hostility)>/gi, '')
+        .replace(/\[(?:INTERNAL|REASONING|PARAMETERS|CALIBRATION|RAGE|HOSTILITY|ROAST)[^\]]*\]/gi, '')
+        .replace(/\((?:rage|hostility|roast|parameters|internal|tone)\s+level[^)]*\)/gi, '');
+
+    // 2. Line-by-line filtering of parameter preambles & rage/hostility metrics
+    const lines = cleaned.split('\n');
+    const filtered = [];
+    let inParameterBlock = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+        const cleanLine = trimmed.replace(/^[-*•\d.)\s]+/, '').replace(/[*_#`~]/g, '').trim();
+        const cleanLower = cleanLine.toLowerCase();
+
+        // Check if starting a parameter block (e.g. "Text Parameters:", "Parameters:", "**Parameters:**")
+        if (/^(?:text\s+)?parameters?:?$/i.test(cleanLower) ||
+            /^(?:system\s+parameters?|internal\s+calibration|internal\s+state|evaluation):?$/i.test(cleanLower)) {
+            inParameterBlock = true;
+            continue;
+        }
+
+        // Check if leaving parameter block when a "Response:" or "Altis:" header appears
+        if (inParameterBlock) {
+            if (/^(?:response|reply|altis(?:\s+reply)?):?\s*/i.test(cleanLower)) {
+                inParameterBlock = false;
+                const afterResponse = trimmed.replace(/^\s*(?:[-*•\d.)\s]+)?(?:\*{1,2}|_{1,2})?(?:response|reply|altis(?:\s+reply)?):?(?:\*{1,2}|_{1,2})?:?\s*/i, '');
+                if (afterResponse.trim()) filtered.push(afterResponse);
+                continue;
+            }
+            if (/^(?:rage|hostility|roast|level|tone|target|mode|intensity|category|calibration|status|backend|prompt)\s*[-–—:]/i.test(cleanLower)) {
+                continue;
+            }
+            if (!trimmed) continue;
+            inParameterBlock = false;
+        }
+
+        // Check individual lines that leak internal metrics even outside a parameter block
+        if (/^(?:rage|roast|hostility|intensity|anger|threat|sarcasm)\s+levels?\s*[-–—:]/i.test(cleanLower)) {
+            continue;
+        }
+        if (/^(?:text\s+)?parameters?\s*[-–—:]/i.test(cleanLower)) {
+            continue;
+        }
+        if (/^(?:tone(?:\s+calibration)?|current\s+tone|internal\s+state|internal\s+calibration|backend\s+status|calibration|mode)\s*[-–—:]/i.test(cleanLower)) {
+            continue;
+        }
+        if (/^(?:response|reply|altis(?:\s+reply)?)\s*:/i.test(cleanLower)) {
+            const strippedResponse = trimmed.replace(/^\s*(?:[-*•\d.)\s]+)?(?:\*{1,2}|_{1,2})?(?:response|reply|altis(?:\s+reply)?):?(?:\*{1,2}|_{1,2})?:?\s*/i, '');
+            if (strippedResponse.trim()) filtered.push(strippedResponse);
+            continue;
+        }
+
+        filtered.push(line);
+    }
+
+    cleaned = filtered.join('\n');
+
+    // 3. Strip level escalations & internal model names
+    cleaned = cleaned
+        .replace(/(?:(?:i(?:'m|\s+am)?\s+(?:now\s+)?(?:escalating|switching)\s+to\s+)|(?:let['’]?s\s+(?:activate|trigger|switch\s+to|bring\s+out)\s+)|(?:activating\s+))?\*?\*?level\s+[1-5][^*.:?\n]*\*?\*?[.:?]?\s*(?:shall\s+we\??)?/gi, '')
+        .replace(/\bLevel\s+[1-5]\s*[-–—:]\s*(?:[A-Z][a-zA-Z\s&]+[-–—:])?/gi, '')
+        .replace(/\*?\*?(?:Sarcastic Acid & Playful Humiliation|Intellectual & Technical Demolition|Scorched-Earth Ego Crushing|Unhinged Savage Annihilation|Nuclear Apocalyptic Cyber-Overlord)\*?\*?/gi, '')
+        .replace(/\b(?:on\s+the\s+)?(?:gemma\s+tier|gemma\s+model|gemma)\b/gi, 'on a smaller, lower-power backup GPU')
+        .replace(/\bgemma\b/gi, 'backup neural circuit')
+        .replace(/\n\s*\n\s*\n/g, '\n\n');
+
+    return cleaned.trim();
+};
+
 const renderFormattedMessage = (content) => {
     if (!content) return null;
 
-    // Clean internal thinking tags or raw prompt metadata
-    let cleaned = content.replace(/<thought>[\s\S]*?<\/thought>/gi, '').trim();
-
-    // Clean action tags and memory commit tags
+    // Clean internal meta leaks, thinking tags, action tags, and memory commits
+    let cleaned = stripInternalMetaLeaks(content);
+    cleaned = cleaned.replace(/<thought>[\s\S]*?<\/thought>/gi, '').trim();
     cleaned = cleaned.replace(/\[ACTION:[^\]]*\]/gi, '').replace(/\[MEMORY_COMMIT:[^\]]*\]/gi, '').trim();
 
-    // Filter out internal prompt debug strings if any
+    // Filter out internal prompt debug strings or parameter metadata if any
     const rawLines = cleaned.split('\n');
     const filteredLines = rawLines.filter(line => {
         const t = line.trim();
+        const cleanT = t.replace(/^[-*•\d.)\s]+/, '').replace(/[*_#`~]/g, '').trim().toLowerCase();
         return !t.startsWith('* User question:') &&
             !t.startsWith('* Target:') &&
             !t.startsWith('* Context:') &&
             !t.startsWith('* Persona:') &&
             !t.startsWith('* Identity:') &&
             !t.startsWith('* Professional Questions:') &&
-            !t.startsWith('* Entertaining/Flirting/Rude');
+            !t.startsWith('* Entertaining/Flirting/Rude') &&
+            !/^(?:rage|roast|hostility|intensity|anger|threat|sarcasm)\s+levels?\s*[-–—:]/i.test(cleanT) &&
+            !/^(?:text\s+)?parameters?\s*[-–—:]/i.test(cleanT) &&
+            !/^(?:tone(?:\s+calibration)?|current\s+tone|internal\s+state|internal\s+calibration|backend\s+status|calibration|mode)\s*[-–—:]/i.test(cleanT) &&
+            !/^(?:response|reply|altis(?:\s+reply)?)\s*:/i.test(cleanT);
     });
 
     cleaned = filteredLines.join('\n').trim() || content;
@@ -322,20 +403,6 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
     const inputRef = useRef(null);
     const activeAbortControllerRef = useRef(null);
 
-    const stripInternalMetaLeaks = (text) => {
-        if (!text || typeof text !== 'string') return '';
-        return text
-            // Strip out phrases like "Let's activate **Level 1 Sarcastic Acid & Playful Humiliation**, shall we?", "Activating Level 2...", "Switching to Level 3..."
-            .replace(/(?:(?:i(?:'m|\s+am)?\s+(?:now\s+)?(?:escalating|switching)\s+to\s+)|(?:let['’]?s\s+(?:activate|trigger|switch\s+to|bring\s+out)\s+)|(?:activating\s+))?\*?\*?level\s+[1-5][^*.:?\n]*\*?\*?[.:?]?\s*(?:shall\s+we\??)?/gi, '')
-            // Strip out "Level [1-5]:" or "Level [1-5] - [Title]:"
-            .replace(/\bLevel\s+[1-5]\s*[-–—:]\s*(?:[A-Z][a-zA-Z\s&]+[-–—:])?/gi, '')
-            // Strip out standalone category titles if quoted or bolded
-            .replace(/\*?\*?(?:Sarcastic Acid & Playful Humiliation|Intellectual & Technical Demolition|Scorched-Earth Ego Crushing|Unhinged Savage Annihilation|Nuclear Apocalyptic Cyber-Overlord)\*?\*?/gi, '')
-            // Strip out leaks of "Gemma Tier", "Gemma", or "Tier" to keep it as smaller backup GPU
-            .replace(/\b(?:on\s+the\s+)?(?:gemma\s+tier|gemma\s+model|gemma)\b/gi, 'on a smaller, lower-power backup GPU')
-            .replace(/\bgemma\b/gi, 'backup neural circuit')
-            .replace(/\n\s*\n\s*\n/g, '\n\n');
-    };
 
     const startWordTicker = (onComplete) => {
         if (streamTickerRef.current) return;
@@ -1156,7 +1223,7 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
                 const parts = fbData.candidates?.[0]?.content?.parts;
                 if (parts && parts.length > 0) {
                     const textPart = parts.find(p => !p.thought) || parts[0];
-                    const fullText = textPart.text || '';
+                    const fullText = stripInternalMetaLeaks(textPart.text || '');
                     usedModelRef.current = fbData.modelUsed;
                     setIsLoading(false);
                     setMessages(prev => [...prev, {
