@@ -15,15 +15,13 @@ const About = () => {
                         </div>
                     </div>
                     <div className="about-text about-text-card reveal reveal-delay-1">
-                        <p>I'm Shahriyar Taufik, a passionate Web Developer specializing in crafting cutting-edge,
-                            user-centric digital solutions. My core philosophy revolves around merging innovative technology
-                            with intuitive design to create impactful web applications.</p>
-                        <p>With a strong foundation in modern front-end and back-end technologies, I thrive on solving
-                            complex problems and pushing the boundaries of what's possible on the web. Proficient in React,
-                            Node.js, Python, and various AI/ML frameworks.</p>
+                        <p>I'm Shahriyar Taufik, a passionate Full-Stack Developer and AI Engineer specializing in crafting cutting-edge,
+                            user-centric digital systems. My core philosophy revolves around merging innovative AI models
+                            with intuitive design to engineer production-ready web platforms.</p>
+                        <p>With expertise bridging deep learning architectures and high-performance full-stack web applications, I design and deploy complex production systems—from dual-model computer vision engines (like ProduceVision Studio Pro) and enterprise agentic feedback platforms (Project LOOP) to IoT sensor telemetry and BCI neural pipelines.</p>
                         <p>Beyond coding, I'm an avid learner constantly exploring emerging tech landscapes and seeking new
                             challenges that foster growth and innovation. My goal is to not just build websites, but to
-                            engineer experiences.</p>
+                            engineer impactful, production-grade intelligence.</p>
                         <div className="about-info">
                             <div className="info-card">
                                 <div className="label">Name</div>

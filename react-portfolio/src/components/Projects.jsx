@@ -17,16 +17,16 @@ const Projects = () => {
                         </div>
                         <div className="project-body">
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <h3>Fruit & Veg Detector</h3>
+                                <h3>ProduceVision Studio Pro</h3>
                                 <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '3px 9px', borderRadius: '12px', background: 'rgba(0, 255, 178, 0.15)', color: '#00FFB2', border: '1px solid rgba(0, 255, 178, 0.3)', fontWeight: 600 }}>Live AI Space</span>
                             </div>
-                            <p>An intelligent AI computer vision system that detects and identifies 36 classes of fruits and vegetables in real time. Combines YOLOv8 for precise localization with HuggingFace ViT for state-of-the-art classification.</p>
+                            <p>Enterprise computer vision platform detecting 63+ produce classes with a dual Ultralytics YOLOv8m + Vision Transformer (ViT) consensus architecture. Features real-time camera viewfinder controls (rotation/flip/zoom), client-side privacy hardware shutoff, USDA FoodData Central macro/micronutrient mapping, and automated chef recipe synthesis—100% free with zero paywalls.</p>
                             <div className="project-techs">
-                                <span>Python</span><span>YOLOv8</span><span>HuggingFace ViT</span><span>Gradio</span><span>Live Space</span>
+                                <span>Python</span><span>YOLOv8m</span><span>Vision Transformer (ViT)</span><span>USDA FoodData</span><span>Gradio</span><span>Live Space</span>
                             </div>
                             <div className="project-links">
                                 <a href="https://huggingface.co/spaces/NEwBEE67/FruitnVeg" target="_blank" rel="noopener noreferrer">Live Demo ↗</a>
-                                <a href="https://github.com/SHAHRIYARTAUFIK/Fruit-and-veg-" target="_blank" rel="noopener noreferrer">GitHub →</a>
+                                <a href="https://github.com/DeathSHMASHER/Fruit-and-veg-" target="_blank" rel="noopener noreferrer">GitHub →</a>
                             </div>
                         </div>
                     </div>
