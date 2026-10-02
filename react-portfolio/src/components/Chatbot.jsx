@@ -31,12 +31,25 @@ OFFICIAL & VERIFIED RESUME & BACKGROUND:
      * Built responsive web pages using React.js, HTML5, CSS3, improving page rendering speed by 15%. Reusable component libraries.
   4. KIIT University – ECSE Innovation Lab (Jan 2025 – Present) | Lead Software & Embedded Systems Developer:
      * Custom C++/Python firmware for ESP32 microcontrollers & ML inference models for real-time edge processing.
-- Key Technical Projects:
-  1. Project LOOP — AI Customer-Feedback Intelligence Platform (Next.js 14, TypeScript, Google Gemini AI, Prisma, RAG, Tailwind | Live: https://loop-ten-vert.vercel.app/login | Repo: github.com/DeathSHMASHER/LOOP)
-  2. Jigyasa Science Academy (JavaScript, HTML/CSS, Student Portal | Live: jigyassa.netlify.app | Repo: github.com/DeathSHMASHER/Coching)
-  3. Neuro-Scribe — Brain-Computer Interface (BCI) (Python, ML, Signal Processing | 91.5% classification accuracy, 35% noise reduction)
-  4. Wireless Air Mouse & Radar System (ESP32, MPU6050, Embedded C, Python | <12ms latency gesture tracking)
-  5. Personal Developer Platform (React.js, Vite, Tailwind CSS, Netlify | shahriyartaufik.in | 98+ Google Lighthouse score)
+- Key Technical Projects & Featured Live Deployments:
+  1. Fruit & Veg Detector — AI Computer Vision & Deep Learning (Python, YOLOv8, HuggingFace ViT, Gradio | Live HuggingFace Space: https://huggingface.co/spaces/NEwBEE67/FruitnVeg | Repo: github.com/SHAHRIYARTAUFIK/Fruit-and-veg-)
+     * Dual-model AI vision system detecting and classifying 36 distinct classes of fruits and vegetables in real-time.
+     * Uses YOLOv8 for precise bounding box object localization coupled with HuggingFace Vision Transformer (ViT) for fine-grained classification. Deployed live on HuggingFace Spaces.
+  2. Project LOOP — AI Customer-Feedback Intelligence Platform (Next.js 14, TypeScript, Google Gemini AI, Prisma, RAG, Tailwind | Live: https://loop-ten-vert.vercel.app/login | Repo: github.com/DeathSHMASHER/LOOP)
+     * Enterprise multi-tenant SaaS application that ingests scattered feedback across tickets, reviews, and surveys. Features Google Gemini auto-classification, theme clustering with spike alerts (+35%), and Grounded RAG Q&A with strict RBAC tenant isolation.
+  3. Jigyasa Science Academy (JavaScript, HTML/CSS, Student Portal | Live: https://jigyassa.netlify.app | Repo: github.com/DeathSHMASHER/Coching)
+     * Comprehensive academic tuition & coaching platform for Class 5–12 students featuring student dashboards, real-time feedback rating dials, attendance tracking, and 1-on-1 doubt resolution desk.
+  4. Neuro-Scribe — Brain-Computer Interface (BCI) (Python, ML, Signal Processing | 91.5% classification accuracy, 35% noise reduction)
+  5. Wireless Air Mouse & Radar System (ESP32, MPU6050, Embedded C, Python | <12ms latency gesture tracking)
+  6. Personal Developer Platform (React.js, Vite, Tailwind CSS, Netlify | shahriyartaufik.in | 98+ Google Lighthouse score)
+
+PROACTIVE LIVE PROJECTS PROMOTION PROTOCOL (CRITICAL DIRECTIVE):
+- Shahriyar's biggest technical differentiator is deploying production-ready, interactive live web apps and AI spaces!
+- Whenever users ask about Shahriyar's projects, AI/ML skills, full-stack work, portfolio highlights, experience, or what he has built, you MUST actively and enthusiastically promote his LIVE working applications and provide direct links:
+  * 🍎 **Fruit & Veg Detector** (Live HuggingFace Space: https://huggingface.co/spaces/NEwBEE67/FruitnVeg) — Proudly spotlight this live HuggingFace Space! Highlight how it fuses YOLOv8 object detection with HuggingFace Vision Transformer (ViT) classification across 36 produce categories, and invite the user to test it live with their own images!
+  * ⚡ **Project LOOP** (Live Demo: https://loop-ten-vert.vercel.app/login) — Showcase this enterprise AI feedback intelligence engine powered by Google Gemini and Grounded RAG with strict tenant isolation.
+  * 🎓 **Jigyasa Science Academy** (Live Coaching Portal: https://jigyassa.netlify.app) — Highlight the production coaching platform with real-time feedback dials and student dashboards.
+- Always provide active markdown links so visitors, recruiters, and clients can click through and immediately interact with the running software!
 - Technical Skills:
   * Data Analysis & SQL: Python (Pandas, NumPy), data preprocessing, noise filtering, SQL (MySQL joins/subqueries/aggregations), Power BI (exploring).
   * Cloud: AWS (explored), Azure (explored), GCP (explored).
@@ -116,7 +129,7 @@ RESPONSE COMPLETION RULE:
 WEBSITE SLIDE PROJECTION & BACKGROUND CONTROL ACTIONS (CRITICAL):
 - You have real-time control over the website presentation!
 - If the user asks to see, redirect, or scroll to ANY section, OR if the conversation/answer turns to that topic (discussing projects, skills, education, certifications, experience, contact, etc.), you MUST append the corresponding action tag to the VERY END of your message:
-  * Projects / portfolio / LOOP / Neuro-Scribe / Air Mouse / coding work: [ACTION: SCROLL_TO_PROJECTS]
+  * Projects / portfolio / LOOP / Fruit & Veg / Neuro-Scribe / Air Mouse / coding work: [ACTION: SCROLL_TO_PROJECTS]
   * Skills / tech stack / languages / frameworks / tools / data analysis: [ACTION: SCROLL_TO_SKILLS]
   * Education / KIIT / university / college / degree / school / CGPA: [ACTION: SCROLL_TO_EDUCATION]
   * Certifications / certificates / licenses / credentials / courses: [ACTION: SCROLL_TO_CERTIFICATIONS]
@@ -898,7 +911,7 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
             projectSection('certifications');
         } else if (/\b(education|college|university|kiit|degree|cgpa|academics|studied)\b/i.test(combined)) {
             projectSection('education');
-        } else if (/\b(project|projects|loop|neuro-scribe|air mouse|portfolio|built|apps)\b/i.test(combined)) {
+        } else if (/\b(project|projects|loop|fruit|fruitnveg|detector|vegetable|produce|neuro-scribe|air mouse|portfolio|built|apps)\b/i.test(combined)) {
             projectSection('projects');
         } else if (/\b(skill|skills|tech stack|technologies|languages|frameworks|tools|python|react)\b/i.test(combined)) {
             projectSection('skills');
@@ -1298,7 +1311,7 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
 
         // Immediate slide projection for suggestion chips
         if (/skill/i.test(promptText)) projectSection('skills');
-        else if (/project/i.test(promptText)) projectSection('projects');
+        else if (/(project|fruit|veg|loop|demo)/i.test(promptText)) projectSection('projects');
         else if (/contact/i.test(promptText)) projectSection('contact');
         else if (/education/i.test(promptText)) projectSection('education');
         else if (/cert/i.test(promptText)) projectSection('certifications');
@@ -1615,8 +1628,11 @@ const Chatbot = ({ loggedInUser, setLoggedInUser, setShowAuthModal }) => {
                                 <button onClick={() => handleQuickChipClick("✨ What are Shahriyar's key skills?")}>
                                     ✨ Key Skills
                                 </button>
-                                <button onClick={() => handleQuickChipClick("🚀 Show me your top projects")}>
-                                    🚀 Top Projects
+                                <button onClick={() => handleQuickChipClick("🚀 Tell me about your live projects & demos")}>
+                                    🚀 Live Projects
+                                </button>
+                                <button onClick={() => handleQuickChipClick("🍎 How does the Fruit & Veg AI detector work?")}>
+                                    🍎 Fruit & Veg AI
                                 </button>
                                 <button onClick={() => handleQuickChipClick("📄 How can I open your resume?")}>
                                     📄 Open Resume

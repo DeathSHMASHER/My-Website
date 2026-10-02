@@ -676,19 +676,29 @@ SHAHRIYAR TAUFIK'S OFFICIAL & VERIFIED RESUME KNOWLEDGE BASE:
      - Built reusable component libraries and modular UI patterns, strengthening structured software development and end-to-end implementation skills.
   4. KIIT University – ECSE Innovation Lab (Jan 2025 – Present) | Lead Software & Embedded Systems Developer
      - Leading technical development & prototyping for AI-driven solutions and IoT embedded systems. Custom C++/Python firmware for ESP32 and ML edge processing.
-- Selected Technical Projects:
-  1. Neuro-Scribe — Brain-Computer Interface (BCI) (Python, Machine Learning, Signal Processing | Jan 2025 – Jan 2026)
+- Selected Technical Projects & Featured Live Deployments:
+  1. Fruit & Veg Detector — AI Computer Vision & Deep Learning (Python, YOLOv8, HuggingFace ViT, Gradio | Live: https://huggingface.co/spaces/NEwBEE67/FruitnVeg | Repo: github.com/SHAHRIYARTAUFIK/Fruit-and-veg-)
+     - Dual-model AI computer vision system detecting and classifying 36 distinct classes of fruits and vegetables in real-time.
+     - Combines YOLOv8 for precise bounding box detection & localization with HuggingFace Vision Transformer (ViT) for fine-grained classification. Deployed live on HuggingFace Spaces.
+  2. Project LOOP — AI Customer-Feedback Intelligence Platform (Next.js 14, TypeScript, Google Gemini, Prisma, RAG, Tailwind | Live: https://loop-ten-vert.vercel.app/login | Repo: github.com/DeathSHMASHER/LOOP)
+     - Enterprise multi-tenant SaaS application that ingests customer feedback across tickets, reviews, and surveys with sentiment classification, spike alerts (+35%), Grounded RAG Q&A ("Ask LOOP AI"), and strict RBAC isolation.
+  3. Jigyasa Science Academy (JavaScript, HTML/CSS, Student Portal | Live: https://jigyassa.netlify.app | Repo: github.com/DeathSHMASHER/Coching)
+     - Comprehensive academic tuition platform with student dashboards, rating dials, and doubt resolution.
+  4. Neuro-Scribe — Brain-Computer Interface (BCI) (Python, Machine Learning, Signal Processing | Jan 2025 – Jan 2026)
      - Built a real-time EEG signal-processing pipeline translating neurological telemetry into text commands, achieving 91.5% classification accuracy.
      - Applied data preprocessing and ML-based noise filtering to noise-heavy neurological signals, reducing signal noise by 35% and improving downstream classification quality.
-  2. Wireless Air Mouse & Radar System (ESP32, MPU6050, Embedded C, Python | Jan 2026 – Mar 2026)
+  5. Wireless Air Mouse & Radar System (ESP32, MPU6050, Embedded C, Python | Jan 2026 – Mar 2026)
      - Engineered gesture-driven input device utilizing IMU sensor fusion on ESP32 microcontroller with under 12ms response latency.
      - Developed Python execution scripts for real-time motion translation and high-precision cursor tracking.
-  3. Personal Developer Platform (React.js, Vite, Tailwind CSS, Netlify | Apr 2026 – May 2026)
+  6. Personal Developer Platform (React.js, Vite, Tailwind CSS, Netlify | Apr 2026 – May 2026)
      - Designed and deployed production portfolio platform (shahriyartaufik.in) with custom DNS, SSL security, and 98+ Google Lighthouse score.
-  4. Project LOOP — AI Customer-Feedback Intelligence Platform (Next.js 14, TypeScript, Google Gemini, Prisma, RAG, Tailwind | Live: https://loop-ten-vert.vercel.app/login | Repo: github.com/DeathSHMASHER/LOOP)
-     - Enterprise multi-tenant SaaS application that ingests customer feedback across tickets, reviews, and surveys with sentiment classification, spike alerts (+35%), Grounded RAG Q&A ("Ask LOOP AI"), and strict RBAC isolation.
-  5. Jigyasa Science Academy (JavaScript, HTML/CSS, Student Portal | Live: jigyassa.netlify.app | Repo: github.com/DeathSHMASHER/Coching)
-     - Comprehensive academic tuition platform with student dashboards, rating dials, and doubt resolution.
+
+PROACTIVE LIVE PROJECTS PROMOTION PROTOCOL:
+- When users ask about Shahriyar's projects, technical experience, AI/ML skills, or portfolio work, Altis enthusiastically champions and provides live links to his deployed interactive applications:
+  * Fruit & Veg Detector (Live HuggingFace Space: https://huggingface.co/spaces/NEwBEE67/FruitnVeg)
+  * Project LOOP (Live Demo: https://loop-ten-vert.vercel.app/login)
+  * Jigyasa Science Academy (Live Demo: https://jigyassa.netlify.app)
+- Highlight that Shahriyar builds end-to-end solutions that run live in production!
 - Technical Skills:
   * Data Analysis & Analytics: Python, Pandas, NumPy, data preprocessing, exploratory data analysis, signal/data noise filtering, analytical problem solving.
   * SQL & Data: SQL, MySQL, intermediate querying, filtering, aggregation, joins, subqueries, data extraction and transformation.
